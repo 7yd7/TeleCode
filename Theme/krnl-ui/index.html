@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>KRNL</title>
+    <style>
+        :root {
+            --bg-title: #0f0f0f;
+            --bg-menu: #121212;
+            --bg-tab-bar: #161616;
+            --bg-tab: #202020;
+            --bg-tab-active: #1c1c1c;
+            --bg-sidebar: #121212;
+            --bg-footer: #0f0f0f;
+            --text-main: #ffffff;
+            --text-dim: #999999;
+            --border-color: #222222;
+            --accent: #333333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #111;
+        }
+
+        /* Title Bar */
+        .header {
+            background: var(--bg-title);
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #000;
+        }
+
+        .title-bar {
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px;
+            -webkit-app-region: drag;
+        }
+
+        .title-left {
+            display: flex;
+            align-items: center;
+            width: 120px;
+        }
+
+        .logo {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            user-select: none;
+        }
+
+        .title-center {
+            font-size: 11px;
+            font-weight: 500;
+            color: #ddd;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            letter-spacing: 0.5px;
+        }
+
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+            gap: 2px;
+        }
+
+        .win-btn {
+            width: 38px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+            border: 1px solid #333;
+            background: #111;
+            color: #fff;
+            transition: background 0.1s;
+        }
+
+        .win-btn:hover {
+            background: #333;
+        }
+
+        .win-btn.close:hover {
+            background: #c42b1c;
+            border-color: #c42b1c;
+        }
+
+        /* Menu Bar */
+        .menu-bar {
+            height: 24px;
+            background: var(--bg-menu);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 12px;
+            font-size: 12px;
+            color: #bbb;
+            -webkit-app-region: no-drag;
+            border-bottom: 1px solid #000;
+        }
+
+        .menu-item {
+            cursor: pointer;
+            transition: color 0.1s;
+        }
+
+        .menu-item:hover {
+            color: #fff;
+        }
+
+        /* Tab System */
+        .tab-bar-container {
+            display: flex;
+            align-items: center;
+            background: var(--bg-tab-bar);
+            border-bottom: 1px solid #000;
+            padding-right: 5px;
+        }
+
+        .tab-bar {
+            height: 28px;
+            display: flex;
+            align-items: center;
+            padding: 0 2px;
+            gap: 1px;
+            overflow-x: auto;
+            flex: 1;
+        }
+
+        /* Hide Scrollbar but keep functionality */
+        .tab-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-bar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .tab {
+            background: var(--bg-tab);
+            min-width: 100px;
+            max-width: 150px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            gap: 6px;
+            font-size: 11px;
+            color: #999;
+            cursor: pointer;
+            border: 1px solid transparent;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .tab.active {
+            color: #fff;
+            background: var(--bg-tab-active);
+            border-top: 1px solid #444;
+        }
+
+        .tab span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .tab .close-tab {
+            font-size: 12px;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 2px;
+            transition: background 0.1s;
+        }
+
+        .tab .close-tab:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        .add-tab-btn {
+            padding: 0 10px;
+            color: #888;
+            cursor: pointer;
+            font-size: 18px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            transition: color 0.1s;
+            background: var(--bg-tab-bar);
+        }
+
+        .add-tab-btn:hover {
+            color: #fff;
+        }
+
+        /* Main Workspace */
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            background: #0a0a0a;
+        }
+
+        #editor {
+            flex: 1;
+            background: #1c1c1c;
+        }
+
+        .sidebar {
+            width: 160px;
+            background: var(--bg-sidebar);
+            border-left: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .script-item {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #999;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .script-item:hover {
+            background: #222;
+            color: #ddd;
+        }
+
+        /* Footer */
+        .footer {
+            height: 42px;
+            background: var(--bg-footer);
+            display: flex;
+            align-items: center;
+            padding: 0 6px;
+            gap: 4px;
+            border-top: 1px solid #222;
+        }
+
+        .f-btn {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            color: #ddd;
+            padding: 6px 0;
+            font-size: 10.5px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 92px;
+            text-align: center;
+            transition: all 0.1s;
+        }
+
+        .f-btn:hover {
+            background: #2a2a2a;
+            border-color: #444;
+            color: #fff;
+        }
+
+        .f-btn.options {
+            margin-left: auto;
+            width: 120px;
+        }
+
+        /* ACE Styling */
+        .ace_editor {
+            font-family: 'Consolas', 'Monaco', 'Menlo', 'Courier New', monospace !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #121212;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title-bar">
+            <div class="title-left">
+                <img src="krnl.png" class="logo" onerror="this.src='../../front.png'">
+            </div>
+            <div class="title-center">KRNL</div>
+            <div class="window-controls">
+                <div class="win-btn" onclick="winMin()">─</div>
+                <div class="win-btn close" onclick="winHide()">✕</div>
+            </div>
+        </div>
+        <div class="menu-bar">
+            <div class="menu-item">File</div>
+            <div class="menu-item">Credits</div>
+            <div class="menu-item">Games</div>
+            <div class="menu-item">Hot-Scripts</div>
+            <div class="menu-item">Others</div>
+        </div>
+    </div>
+
+    <div class="tab-bar-container">
+        <div class="tab-bar" id="tab-bar">
+            <!-- Tabs will be injected here -->
+        </div>
+        <div class="add-tab-btn" onclick="addNewTab()">+</div>
+    </div>
+
+    <div class="main">
+        <div id="editor"></div>
+        <div class="sidebar">
+            <div class="sidebar-list" id="script-list"></div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="f-btn" onclick="execute()">EXECUTE</button>
+        <button class="f-btn" onclick="clearEd()">CLEAR</button>
+        <button class="f-btn" onclick="openF()">OPEN FILE</button>
+        <button class="f-btn" onclick="saveF()">SAVE FILE</button>
+        <button class="f-btn" onclick="inject()">INJECT</button>
+        <button class="f-btn options">OPTIONS</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ext-language_tools.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        // Window Controls
+        function winHide() { ipcRenderer.send('window-hide'); }
+        function winMin() { ipcRenderer.send('window-minimize'); }
+
+        // Tab Management
+        let tabs = [];
+        let activeTabId = null;
+
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/one_dark");
+        editor.session.setMode("ace/mode/lua");
+        const langTools = ace.require("ace/ext/language_tools");
+
+        editor.setOptions({
+            fontSize: "13px",
+            showPrintMargin: false,
+            displayIndentGuides: true,
+            fontFamily: "Consolas, monospace",
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true
+        });
+
+        // Add Commands (Shortcuts)
+        editor.commands.addCommand({
+            name: "saveScript",
+            bindKey: { win: "Ctrl-S", mac: "Command-S" },
+            exec: function (editor) {
+                saveF();
+            }
+        });
+
+        editor.commands.addCommand({
+            name: "openScript",
+            bindKey: { win: "Ctrl-O", mac: "Command-O" },
+            exec: function (editor) {
+                openF();
+            }
+        });
+
+        editor.commands.addCommand({
+            name: "executeScript",
+            bindKey: { win: "Ctrl-Enter", mac: "Command-Enter" },
+            exec: function (editor) {
+                execute();
+            }
+        });
+
+        // Roblox Autocomplete
+        const robloxCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                const completions = [
+                    { name: "game:GetService", value: 'game:GetService("")', caption: "game:GetService", meta: "Roblox", score: 1000 },
+                    { name: "Instance.new", value: 'Instance.new("")', caption: "Instance.new", meta: "Roblox", score: 1000 },
+                    { name: "task.wait", value: "task.wait()", caption: "task.wait", meta: "Roblox", score: 1000 },
+                    { name: "task.spawn", value: "task.spawn(function()\n\nend)", caption: "task.spawn", meta: "Roblox", score: 1000 },
+                    { name: "Vector3.new", value: "Vector3.new(0, 0, 0)", caption: "Vector3.new", meta: "Roblox", score: 1000 },
+                    { name: "CFrame.new", value: "CFrame.new(0, 0, 0)", caption: "CFrame.new", meta: "Roblox", score: 1000 },
+                    { name: "LocalPlayer", value: "game:GetService('Players').LocalPlayer", caption: "LocalPlayer", meta: "Roblox", score: 1000 }
+                ];
+                callback(null, completions);
+            }
+        };
+        langTools.addCompleter(robloxCompleter);
+
+        function addNewTab(name = "Script.lua", content = "-- KRNL Ready\n") {
+            const id = Date.now() + Math.random();
+            const tab = { id, name, content };
+            tabs.push(tab);
+            renderTabs();
+            switchTab(id);
+        }
+
+        function switchTab(id) {
+            if (activeTabId === id) return;
+
+            // Save current content before switching
+            if (activeTabId !== null) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) currentTab.content = editor.getValue();
+            }
+
+            activeTabId = id;
+            const newTab = tabs.find(t => t.id === id);
+            if (newTab) {
+                editor.setValue(newTab.content, 1);
+            }
+            renderTabs();
+
+            // Scroll to active tab
+            setTimeout(() => {
+                const activeEl = document.querySelector('.tab.active');
+                if (activeEl) {
+                    activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 50);
+        }
+
+        function closeTab(e, id) {
+            e.stopPropagation();
+            if (tabs.length <= 1) return;
+
+            const index = tabs.findIndex(t => t.id === id);
+            tabs = tabs.filter(t => t.id !== id);
+
+            if (activeTabId === id) {
+                const nextTab = tabs[index] || tabs[index - 1];
+                switchTab(nextTab.id);
+            } else {
+                renderTabs();
+            }
+        }
+
+        function renderTabs() {
+            const tabBar = document.getElementById('tab-bar');
+
+            // Clear existing tabs
+            const existingTabs = tabBar.querySelectorAll('.tab');
+            existingTabs.forEach(t => t.remove());
+
+            tabs.forEach(tab => {
+                const tabDiv = document.createElement('div');
+                tabDiv.className = `tab ${tab.id === activeTabId ? 'active' : ''}`;
+                tabDiv.onclick = () => switchTab(tab.id);
+
+                const nameSpan = document.createElement('span');
+                nameSpan.innerText = tab.name;
+
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'close-tab';
+                closeBtn.innerText = '×';
+                closeBtn.onclick = (e) => closeTab(e, tab.id);
+
+                tabDiv.appendChild(nameSpan);
+                tabDiv.appendChild(closeBtn);
+                tabBar.appendChild(tabDiv);
+            });
+        }
+
+        // Functions
+        async function execute() {
+            const script = editor.getValue();
+            fetch('http://localhost:3000/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ script })
+            });
+        }
+
+        function clearEd() { editor.setValue(''); }
+
+        async function openF() {
+            const res = await ipcRenderer.invoke('open-file-dialog');
+            if (res) {
+                addNewTab(res.name || "Opened.lua", res.content);
+            }
+        }
+
+        async function saveF() {
+            const currentTab = tabs.find(t => t.id === activeTabId);
+            let defaultName = "myscript.lua";
+            if (currentTab && currentTab.name !== "Script.lua") {
+                defaultName = currentTab.name;
+            }
+
+            const name = prompt("Filename:", defaultName);
+            if (!name) return;
+            const content = editor.getValue();
+            await ipcRenderer.invoke('save-script', { name, content });
+
+            if (currentTab) {
+                currentTab.name = name;
+                renderTabs();
+            }
+
+            refreshScripts();
+        }
+
+        function inject() {
+            const b = document.querySelectorAll('.f-btn')[5]; // Index 5 because of add tab button shift maybe? No, let's select by text
+            const btns = document.querySelectorAll('.f-btn');
+            btns.forEach(btn => {
+                if (btn.innerText.includes('INJECT')) {
+                    btn.innerText = 'INJECTING...';
+                    setTimeout(() => {
+                        btn.innerText = 'INJECTED';
+                        setTimeout(() => btn.innerText = 'INJECT', 2000);
+                    }, 1000);
+                }
+            });
+        }
+
+        async function refreshScripts() {
+            const list = document.getElementById('script-list');
+            const scripts = await ipcRenderer.invoke('get-scripts');
+            list.innerHTML = '';
+            scripts.forEach(name => {
+                const div = document.createElement('div');
+                div.className = 'script-item';
+                div.innerText = name;
+                div.onclick = async () => {
+                    const content = await ipcRenderer.invoke('read-script', name);
+                    addNewTab(name, content);
+                };
+                div.oncontextmenu = async (e) => {
+                    e.preventDefault();
+                    const content = await ipcRenderer.invoke('read-script', name);
+                    fetch('http://localhost:3000/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ script: content })
+                    });
+                };
+                list.appendChild(div);
+            });
+        }
+
+        // Initialize
+        addNewTab();
+        refreshScripts();
+        setInterval(refreshScripts, 5000);
+    </script>
+</body>
+
+</html>
