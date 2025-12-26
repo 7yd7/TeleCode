@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>TeleCode</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #0e0e12;
+            --bg-sidebar: #0a0a0e;
+            --bg-accent: #6366f1;
+            --bg-hover: rgba(255, 255, 255, 0.04);
+            --bg-card: #12121a;
+            --bg-danger: #e81123;
+            --text: #e8e8ec;
+            --text-dim: #5a5a66;
+            --text-muted: #3a3a44;
+            --border: rgba(255, 255, 255, 0.06);
+            --success: #00c853;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-main);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-brand {
+            padding: 18px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+            -webkit-app-region: no-drag;
+        }
+
+        .sidebar-brand:hover {
+            background: var(--bg-hover);
+        }
+
+        .sidebar-brand img {
+            width: 22px;
+            height: 22px;
+        }
+
+        .sidebar-brand span {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .explorer-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            -webkit-app-region: drag;
+        }
+
+        .explorer-actions {
+            display: flex;
+            gap: 4px;
+            -webkit-app-region: no-drag;
+        }
+
+        .icon-btn {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .search-box {
+            padding: 8px 12px;
+            margin: 0 12px 10px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 12px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-input:focus {
+            border-color: var(--bg-accent);
+        }
+
+        .section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header {
+            padding: 10px 16px;
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-header .count {
+            background: var(--bg-card);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 9px;
+        }
+
+        .item-list {
+            max-height: 180px;
+            overflow-y: auto;
+            padding: 0 8px 8px;
+        }
+
+        .list-item {
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .list-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .list-item.active {
+            background: var(--bg-accent);
+            color: #fff;
+        }
+
+        .list-item .item-name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .list-item .item-close {
+            opacity: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: 0.15s;
+        }
+
+        .list-item:hover .item-close {
+            opacity: 0.6;
+        }
+
+        .list-item .item-close:hover {
+            opacity: 1;
+            background: var(--bg-danger);
+            color: #fff;
+        }
+
+        .empty-state {
+            padding: 15px;
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 15px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+        }
+
+        .status-dot.online {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .titlebar {
+            height: 40px;
+            background: var(--bg-sidebar);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-left: 12px;
+            -webkit-app-region: drag;
+        }
+
+        .titlebar-title {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .titlebar-actions {
+            display: flex;
+            -webkit-app-region: no-drag;
+        }
+
+        .win-btn {
+            width: 46px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .win-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .win-btn.close:hover {
+            background: var(--bg-danger);
+            color: #fff;
+        }
+
+        /* FLOATING TOOLBAR */
+        .floating-toolbar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0a0a0e;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .floating-toolbar.visible {
+            display: flex;
+            animation: fadeUp 0.3s ease-out;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .icon-action {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+        }
+
+        .icon-action:hover {
+            color: var(--text);
+            background: var(--bg-hover);
+        }
+
+        .icon-action.primary {
+            background: var(--bg-accent);
+            color: #fff;
+        }
+
+        .icon-action.primary:hover {
+            filter: brightness(1.15);
+        }
+
+        .icon-action svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+
+        /* Top file info bar */
+        .file-info {
+            height: 36px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            display: none;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+
+        .file-info.visible {
+            display: flex;
+        }
+
+        .current-file {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .unsaved-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ffc107;
+            display: none;
+        }
+
+        .unsaved-dot.show {
+            display: block;
+        }
+
+
+        /* EDITOR */
+        .editor-wrap {
+            flex: 1;
+            position: relative;
+            background: #08080c;
+        }
+
+        #editor {
+            position: absolute;
+            inset: 0;
+        }
+
+        /* Editor Cursor Animation */
+        .ace_cursor {
+            border-left: 2px solid var(--bg-accent) !important;
+            animation: cursorBlink 1s infinite;
+        }
+
+        @keyframes cursorBlink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Ace Autocomplete Theme */
+        .ace_autocomplete {
+            background: var(--bg-card) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+            padding: 4px !important;
+        }
+
+        .ace_autocomplete .ace_line-hover,
+        .ace_autocomplete .ace_selected {
+            background: var(--bg-accent) !important;
+            border-radius: 4px !important;
+        }
+
+        .ace_autocomplete .ace_ {
+            color: var(--text) !important;
+        }
+
+        .ace_completion-meta {
+            color: var(--text-dim) !important;
+            font-size: 11px !important;
+        }
+
+        /* LOADING SCREEN */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-main);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            width: 70px;
+            margin-bottom: 30px;
+            animation: pulse 2s infinite;
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .loading-status {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+        }
+
+        .loading-bar-container {
+            width: 200px;
+            height: 4px;
+            background: var(--bg-card);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--bg-accent), #8b5cf6);
+            width: 0%;
+            transition: width 0.3s ease-out;
+            border-radius: 2px;
+        }
+
+        /* WELCOME */
+        .welcome-screen {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            background: var(--bg-main);
+            z-index: 10;
+            transition: all 0.4s;
+            text-align: center;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        .welcome-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .welcome-logo {
+            width: 70px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.3));
+        }
+
+        .welcome-title {
+            font-size: 32px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #e8e8ec 0%, #8b8b9a 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .welcome-sub {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 35px;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .quick-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--bg-accent);
+            color: var(--text);
+            transform: translateY(-2px);
+        }
+
+        .quick-btn.primary {
+            background: var(--bg-accent);
+            border: none;
+            color: #fff;
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            min-width: 160px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .context-menu.visible {
+            display: block;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .context-item {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dim);
+        }
+
+        .context-item:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .context-item.primary {
+            color: var(--bg-accent);
+        }
+
+        .context-item.primary:hover {
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .context-item.danger:hover {
+            background: rgba(232, 17, 35, 0.15);
+            color: var(--bg-danger);
+        }
+
+        .context-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a2a35;
+            border-radius: 10px;
+        }
+
+        /* Ace */
+        .ace_gutter {
+            background: transparent !important;
+            color: #3a3a46 !important;
+        }
+
+        .ace_scroller {
+            background: transparent !important;
+        }
+
+        .ace_active-line {
+            background: rgba(99, 102, 241, 0.05) !important;
+        }
+
+        /* SETTINGS PANEL */
+        .settings-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .settings-overlay.visible {
+            display: flex;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .settings-panel {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .settings-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .settings-close {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: 0.2s;
+        }
+
+        .settings-close:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .settings-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .settings-section:last-child {
+            border-bottom: none;
+        }
+
+        .settings-section-title {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 22px;
+            background: var(--bg-card);
+            border-radius: 11px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 1px solid var(--border);
+        }
+
+        .toggle-switch.active {
+            background: var(--bg-accent);
+            border-color: var(--bg-accent);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 20px;
+        }
+
+        /* Enhanced Welcome */
+        .welcome-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            min-width: 120px;
+            transition: 0.3s;
+        }
+
+        .stat-box:hover {
+            border-color: var(--bg-accent);
+            transform: translateY(-3px);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 4px;
+            text-transform: uppercase;
+        }
+
+        .welcome-tips {
+            margin-top: 40px;
+            text-align: left;
+            max-width: 400px;
+        }
+
+        .tip-title {
+            font-size: 12px;
+            color: var(--text-dim);
+            margin-bottom: 12px;
+        }
+
+        .tip-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tip-key {
+            background: var(--bg-card);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .settings-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <img src="../../TeleCode-icon.png" class="loading-logo" onerror="this.src='../../front.png'">
+        <div class="loading-title">TeleCode</div>
+        <div class="loading-status" id="loading-status">Initializing...</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loading-bar"></div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-brand" onclick="goHome()">
+            <img src="../../TeleCode-icon.png" onerror="this.src='../../front.png'">
+            <span>TeleCode</span>
+        </div>
+
+        <div class="explorer-header">
+            <span>Explorer</span>
+            <div class="explorer-actions">
+                <div class="icon-btn" onclick="addNewTab()" title="New Script">+</div>
+                <div class="icon-btn" onclick="refreshScripts()" title="Refresh">↻</div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="Search scripts..." id="search-input"
+                oninput="filterScripts()">
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Scripts</span>
+                <span class="count" id="scripts-count">0</span>
+            </div>
+            <div class="item-list" id="scripts-list">
+                <div class="empty-state">No scripts open</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>Saves</span>
+                <span class="count" id="saves-count">0</span>
+            </div>
+            <div class="item-list" id="saves-list">
+                <div class="empty-state">No files saved</div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span>v1.5.0</span>
+                <div class="settings-btn" onclick="toggleSettings()" title="Settings">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="status">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="status-text">Offline</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="titlebar">
+            <span class="titlebar-title" id="titlebar-title">TeleCode</span>
+            <div class="titlebar-actions">
+                <div class="win-btn" onclick="winMin()">
+                    <svg width="10" height="1">
+                        <rect width="10" height="1" fill="currentColor" />
+                    </svg>
+                </div>
+                <div class="win-btn close" onclick="winHide()">
+                    <svg width="10" height="10">
+                        <path d="M0,0 L10,10 M10,0 L0,10" stroke="currentColor" stroke-width="1.2" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="file-info" id="file-info">
+            <span class="current-file" id="current-file">Untitled.lua</span>
+            <span class="unsaved-dot" id="unsaved-dot" title="Unsaved changes"></span>
+        </div>
+
+        <div class="editor-wrap">
+            <div class="welcome-screen" id="welcome">
+                <img src="../../TeleCode-icon.png" class="welcome-logo" onerror="this.src='../../front.png'">
+                <div class="welcome-title">TeleCode</div>
+                <div class="welcome-sub">Script Executor</div>
+                <div class="quick-actions">
+                    <button class="quick-btn primary" onclick="addNewTab()">+ New Script</button>
+                    <button class="quick-btn" onclick="openFile()">Open File</button>
+                </div>
+
+                <div class="welcome-stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="home-scripts">0</div>
+                        <div class="stat-label">Scripts</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="home-saves">0</div>
+                        <div class="stat-label">Saved</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="home-status">-</div>
+                        <div class="stat-label">Clients</div>
+                    </div>
+                </div>
+
+                <div class="welcome-tips">
+                    <div class="tip-title">Keyboard Shortcuts</div>
+                    <div class="tip-item"><span class="tip-key">Ctrl+S</span> Save script</div>
+                    <div class="tip-item"><span class="tip-key">Ctrl+Enter</span> Run script</div>
+                    <div class="tip-item"><span class="tip-key">Ctrl+N</span> New script</div>
+                </div>
+            </div>
+            <div id="editor"></div>
+
+            <!-- Floating Icon Toolbar -->
+            <div class="floating-toolbar" id="floating-toolbar">
+                <button class="icon-action" onclick="clearEditor()" title="Clear">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+                    </svg>
+                </button>
+                <button class="icon-action" onclick="copyToClipboard()" title="Copy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                    </svg>
+                </button>
+                <button class="icon-action" onclick="saveScript()" title="Save">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" />
+                        <polyline points="17,21 17,13 7,13 7,21" />
+                        <polyline points="7,3 7,8 15,8" />
+                    </svg>
+                </button>
+                <div class="toolbar-divider"></div>
+                <button class="icon-action primary" onclick="execute()" title="Run">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <polygon points="5,3 19,12 5,21" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="context-menu">
+        <div class="context-item primary" onclick="runContextScript()">▶ Run</div>
+        <div class="context-divider"></div>
+        <div class="context-item" onclick="renameScript()">Rename</div>
+        <div class="context-item" onclick="duplicateScript()">Duplicate</div>
+        <div class="context-item" onclick="saveScriptToSaves()">Save to Saves</div>
+        <div class="context-divider"></div>
+        <div class="context-item danger" onclick="deleteScript()">Delete</div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-overlay" id="settings-overlay" onclick="closeSettings(event)">
+        <div class="settings-panel" onclick="event.stopPropagation()">
+            <div class="settings-header">
+                <span>Settings</span>
+                <div class="settings-close" onclick="toggleSettings()">×</div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Editor</div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Large Font</div>
+                        <div class="setting-desc">Use 16px instead of 14px</div>
+                    </div>
+                    <div class="toggle-switch" id="toggle-font" onclick="toggleSetting('largeFont')"></div>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Line Numbers</div>
+                        <div class="setting-desc">Show line numbers in editor</div>
+                    </div>
+                    <div class="toggle-switch active" id="toggle-lines" onclick="toggleSetting('lineNumbers')"></div>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Word Wrap</div>
+                        <div class="setting-desc">Wrap long lines</div>
+                    </div>
+                    <div class="toggle-switch" id="toggle-wrap" onclick="toggleSetting('wordWrap')"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Execution</div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">AutoExec</div>
+                        <div class="setting-desc">Run scripts in autoexec folder on connect</div>
+                    </div>
+                    <div class="toggle-switch active" id="toggle-autoexec" onclick="toggleSetting('autoExec')"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">Window</div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Always on Top</div>
+                        <div class="setting-desc">Keep window above other windows</div>
+                    </div>
+                    <div class="toggle-switch" id="toggle-ontop" onclick="toggleSetting('alwaysOnTop')"></div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-section-title">About</div>
+                <div style="font-size: 12px; color: var(--text-dim);">
+                    TeleCode v1.5.0<br>
+                    Script Executor
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ext-language_tools.js"></script>
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        function winHide() { ipcRenderer.send('window-hide'); }
+        function winMin() { ipcRenderer.send('window-minimize'); }
+
+        let tabs = [];
+        let activeId = null;
+        let allSaves = [];
+        let contextTarget = null;
+        let hasUnsavedChanges = false;
+
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/one_dark");
+        editor.session.setMode("ace/mode/lua");
+        editor.setOptions({
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: "14px",
+            showPrintMargin: false,
+            enableBasicAutocompletion: true,
+            enableSnippets: true,
+            enableLiveAutocompletion: true,
+            cursorStyle: "smooth"
+        });
+
+        // Custom Roblox completions
+        const langTools = ace.require("ace/ext/language_tools");
+        langTools.addCompleter({
+            getCompletions: (e, s, p, prefix, callback) => {
+                callback(null, [
+                    { value: 'game:GetService("")', caption: 'game:GetService', meta: 'Roblox', score: 1000 },
+                    { value: 'Instance.new("")', caption: 'Instance.new', meta: 'Roblox', score: 1000 },
+                    { value: 'task.wait()', caption: 'task.wait', meta: 'Roblox', score: 1000 },
+                    { value: 'task.spawn(function()\n\t\nend)', caption: 'task.spawn', meta: 'Roblox', score: 1000 },
+                    { value: "game:GetService('Players').LocalPlayer", caption: 'LocalPlayer', meta: 'Roblox', score: 1000 },
+                    { value: "workspace", caption: 'workspace', meta: 'Roblox', score: 900 },
+                    { value: 'loadstring(game:HttpGet(""))()', caption: 'loadstring', meta: 'Roblox', score: 900 },
+                ]);
+            }
+        });
+
+        // Track changes
+        editor.on('change', () => {
+            hasUnsavedChanges = true;
+            document.getElementById('unsaved-dot').classList.add('show');
+        });
+
+        // Session
+        function saveSession() {
+            const session = {
+                tabs: tabs.map(t => ({ name: t.name, content: t.id === activeId ? editor.getValue() : t.content })),
+                activeIndex: tabs.findIndex(t => t.id === activeId)
+            };
+            localStorage.setItem('telecode_session', JSON.stringify(session));
+        }
+
+        function loadSession() {
+            try {
+                const saved = localStorage.getItem('telecode_session');
+                if (!saved) return;
+                const session = JSON.parse(saved);
+                if (!session.tabs || session.tabs.length === 0) return;
+                session.tabs.forEach(t => {
+                    const id = Date.now() + Math.random();
+                    tabs.push({ id, name: t.name, content: t.content });
+                });
+                if (session.activeIndex >= 0 && tabs[session.activeIndex]) {
+                    switchTab(tabs[session.activeIndex].id);
+                } else if (tabs.length > 0) {
+                    switchTab(tabs[0].id);
+                }
+            } catch (e) { }
+        }
+
+        // Status
+        async function checkStatus() {
+            try {
+                const res = await fetch('http://localhost:3000/status');
+                const data = await res.json();
+                const isOnline = data.clients && data.clients > 0;
+                document.getElementById('status-dot').className = isOnline ? 'status-dot online' : 'status-dot';
+                document.getElementById('status-text').innerText = isOnline ? `Active (${data.clients})` : 'No Clients';
+            } catch (e) {
+                document.getElementById('status-dot').className = 'status-dot';
+                document.getElementById('status-text').innerText = 'Offline';
+            }
+        }
+
+        function updateUI() {
+            const hasActive = tabs.length > 0 && activeId !== null;
+            document.getElementById('floating-toolbar').classList.toggle('visible', hasActive);
+            document.getElementById('file-info').classList.toggle('visible', hasActive);
+            document.getElementById('welcome').classList.toggle('hidden', hasActive);
+            const tab = tabs.find(t => t.id === activeId);
+            document.getElementById('titlebar-title').innerText = hasActive ? tab?.name || 'Untitled' : 'TeleCode';
+            document.getElementById('current-file').innerText = tab?.name || 'Untitled.lua';
+            document.getElementById('scripts-count').innerText = tabs.length;
+            saveSession();
+        }
+
+        function copyToClipboard() {
+            const text = editor.getValue();
+            navigator.clipboard.writeText(text);
+        }
+
+        function goHome() {
+            if (activeId) {
+                const old = tabs.find(t => t.id === activeId);
+                if (old) old.content = editor.getValue();
+            }
+            activeId = null;
+            renderScripts();
+            updateUI();
+        }
+
+        function addNewTab(name = 'Untitled.lua', content = '-- TeleCode\n') {
+            const id = Date.now();
+            tabs.push({ id, name, content });
+            switchTab(id);
+            renderScripts();
+        }
+
+        function switchTab(id) {
+            if (activeId) {
+                const old = tabs.find(t => t.id === activeId);
+                if (old) old.content = editor.getValue();
+            }
+            activeId = id;
+            const tab = tabs.find(t => t.id === id);
+            if (tab) editor.setValue(tab.content, 1);
+            hasUnsavedChanges = false;
+            document.getElementById('unsaved-dot').classList.remove('show');
+            renderScripts();
+            updateUI();
+        }
+
+        function closeScript(e, id) {
+            e.stopPropagation();
+            const idx = tabs.findIndex(t => t.id === id);
+            tabs = tabs.filter(t => t.id !== id);
+            if (tabs.length === 0) {
+                activeId = null;
+                editor.setValue('');
+            } else if (activeId === id) {
+                switchTab(tabs[Math.max(0, idx - 1)].id);
+                return;
+            }
+            renderScripts();
+            updateUI();
+        }
+
+        function renderScripts() {
+            const el = document.getElementById('scripts-list');
+            if (tabs.length === 0) {
+                el.innerHTML = '<div class="empty-state">No scripts open</div>';
+                return;
+            }
+            el.innerHTML = '';
+            tabs.forEach(t => {
+                const div = document.createElement('div');
+                div.className = `list-item ${t.id === activeId ? 'active' : ''}`;
+                div.innerHTML = `<span class="item-name">${t.name}</span><span class="item-close" onclick="closeScript(event, ${t.id})">×</span>`;
+                div.onclick = () => switchTab(t.id);
+                div.oncontextmenu = (e) => showContextMenu(e, t.id);
+                el.appendChild(div);
+            });
+        }
+
+        async function refreshScripts() {
+            const scripts = await ipcRenderer.invoke('get-scripts');
+            allSaves = scripts;
+            renderSaves(scripts);
+        }
+
+        function renderSaves(scripts = []) {
+            const el = document.getElementById('saves-list');
+            document.getElementById('saves-count').innerText = scripts.length;
+            if (scripts.length === 0) {
+                el.innerHTML = '<div class="empty-state">No files saved</div>';
+                return;
+            }
+            el.innerHTML = '';
+            scripts.forEach(name => {
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.innerHTML = `<span class="item-name">${name}</span>`;
+                div.onclick = async () => {
+                    const content = await ipcRenderer.invoke('read-script', name);
+                    addNewTab(name, content);
+                };
+                el.appendChild(div);
+            });
+        }
+
+        function filterScripts() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allSaves.filter(s => s.toLowerCase().includes(query));
+            renderSaves(filtered);
+        }
+
+        async function execute() {
+            try {
+                await fetch('http://localhost:3000/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ script: editor.getValue() })
+                });
+            } catch (e) { }
+        }
+
+        async function saveScript() {
+            const tab = tabs.find(t => t.id === activeId);
+            if (!tab) return;
+            let name = tab.name;
+            if (name === 'Untitled.lua' || !name.includes('.')) {
+                name = prompt('Save as:', tab.name || 'script.lua');
+                if (!name) return;
+            }
+            await ipcRenderer.invoke('save-script', { name, content: editor.getValue() });
+            tab.name = name;
+            hasUnsavedChanges = false;
+            document.getElementById('unsaved-dot').classList.remove('show');
+            renderScripts();
+            updateUI();
+            refreshScripts();
+        }
+
+        async function openFile() {
+            const result = await ipcRenderer.invoke('open-file-dialog');
+            if (result) addNewTab(result.name, result.content);
+        }
+
+        function clearEditor() {
+            editor.session.setValue('-- TeleCode\n');
+            editor.clearSelection();
+            editor.moveCursorTo(0, 0);
+            hasUnsavedChanges = true;
+            document.getElementById('unsaved-dot').classList.add('show');
+        }
+
+        // Context Menu
+        function showContextMenu(e, id) {
+            e.preventDefault();
+            contextTarget = id;
+            const menu = document.getElementById('context-menu');
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            menu.classList.add('visible');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('context-menu').classList.remove('visible');
+        }
+
+        function runContextScript() {
+            const tab = tabs.find(t => t.id === contextTarget);
+            if (tab) {
+                switchTab(tab.id);
+                execute();
+            }
+            hideContextMenu();
+        }
+
+        function renameScript() {
+            hideContextMenu();
+            const tab = tabs.find(t => t.id === contextTarget);
+            if (!tab) return;
+            setTimeout(() => {
+                const name = prompt('Rename:', tab.name);
+                if (name && name.trim()) {
+                    tab.name = name.trim();
+                    renderScripts();
+                    updateUI();
+                }
+            }, 100);
+        }
+
+        function duplicateScript() {
+            const tab = tabs.find(t => t.id === contextTarget);
+            if (tab) addNewTab(tab.name + ' (copy)', tab.content);
+            hideContextMenu();
+        }
+
+        async function saveScriptToSaves() {
+            hideContextMenu();
+            const tab = tabs.find(t => t.id === contextTarget);
+            if (!tab) return;
+
+            // Get fresh content if this is the active tab
+            let content = tab.content;
+            if (tab.id === activeId) {
+                content = editor.getValue();
+                tab.content = content;
+            }
+
+            let name = tab.name;
+            if (name === 'Untitled.lua') {
+                setTimeout(async () => {
+                    name = prompt('Save as:', 'script.lua');
+                    if (!name || !name.trim()) return;
+                    name = name.trim();
+                    await ipcRenderer.invoke('save-script', { name, content });
+                    tab.name = name;
+                    refreshScripts();
+                    renderScripts();
+                    updateUI();
+                }, 100);
+            } else {
+                await ipcRenderer.invoke('save-script', { name, content });
+                refreshScripts();
+            }
+        }
+
+        function deleteScript() {
+            closeScript({ stopPropagation: () => { } }, contextTarget);
+            hideContextMenu();
+        }
+
+        document.addEventListener('click', hideContextMenu);
+
+        // Shortcuts
+        editor.commands.addCommand({ name: 'save', bindKey: { win: 'Ctrl-S' }, exec: saveScript });
+        editor.commands.addCommand({ name: 'run', bindKey: { win: 'Ctrl-Enter' }, exec: execute });
+        editor.commands.addCommand({ name: 'new', bindKey: { win: 'Ctrl-N' }, exec: addNewTab });
+
+        // Settings
+        let settings = {
+            largeFont: false,
+            lineNumbers: true,
+            wordWrap: false,
+            autoExec: true,
+            alwaysOnTop: false
+        };
+
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem('telecode_settings');
+                if (saved) settings = { ...settings, ...JSON.parse(saved) };
+            } catch (e) { }
+            applySettings();
+            updateSettingsUI();
+        }
+
+        function saveSettings() {
+            localStorage.setItem('telecode_settings', JSON.stringify(settings));
+        }
+
+        function applySettings() {
+            editor.setFontSize(settings.largeFont ? '16px' : '14px');
+            editor.renderer.setShowGutter(settings.lineNumbers);
+            editor.session.setUseWrapMode(settings.wordWrap);
+            ipcRenderer.send('set-always-on-top', settings.alwaysOnTop);
+        }
+
+        function updateSettingsUI() {
+            document.getElementById('toggle-font').classList.toggle('active', settings.largeFont);
+            document.getElementById('toggle-lines').classList.toggle('active', settings.lineNumbers);
+            document.getElementById('toggle-wrap').classList.toggle('active', settings.wordWrap);
+            document.getElementById('toggle-autoexec').classList.toggle('active', settings.autoExec);
+            document.getElementById('toggle-ontop').classList.toggle('active', settings.alwaysOnTop);
+        }
+
+        function toggleSetting(key) {
+            settings[key] = !settings[key];
+            saveSettings();
+            applySettings();
+            updateSettingsUI();
+        }
+
+        // Page zoom functions (Ctrl+/Ctrl-)
+        const { webFrame } = require('electron');
+
+        function zoomIn() {
+            const current = webFrame.getZoomFactor();
+            webFrame.setZoomFactor(Math.min(current + 0.1, 2.0));
+        }
+
+        function zoomOut() {
+            const current = webFrame.getZoomFactor();
+            webFrame.setZoomFactor(Math.max(current - 0.1, 0.5));
+        }
+
+        function zoomReset() {
+            webFrame.setZoomFactor(1.0);
+        }
+
+        // Global keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+                e.preventDefault();
+                zoomIn();
+            } else if (e.ctrlKey && e.key === '-') {
+                e.preventDefault();
+                zoomOut();
+            } else if (e.ctrlKey && e.key === '0') {
+                e.preventDefault();
+                zoomReset();
+            }
+        });
+
+        function toggleSettings() {
+            document.getElementById('settings-overlay').classList.toggle('visible');
+        }
+
+        function closeSettings(e) {
+            if (e.target.id === 'settings-overlay') {
+                document.getElementById('settings-overlay').classList.remove('visible');
+            }
+        }
+
+        // Update home stats
+        function updateHomeStats() {
+            document.getElementById('home-scripts').innerText = tabs.length;
+            document.getElementById('home-saves').innerText = allSaves.length;
+        }
+
+        async function updateHomeStatus() {
+            try {
+                const res = await fetch('http://localhost:3000/status');
+                const data = await res.json();
+                document.getElementById('home-status').innerText = data.clients || 0;
+            } catch (e) {
+                document.getElementById('home-status').innerText = '-';
+            }
+        }
+
+        // Loading Animation
+        function startLoading() {
+            const screen = document.getElementById('loading-screen');
+            const status = document.getElementById('loading-status');
+            const bar = document.getElementById('loading-bar');
+
+            const steps = [
+                { width: '20%', text: 'Finding scripts...' },
+                { width: '45%', text: 'Loading settings...' },
+                { width: '70%', text: 'Connecting to server...' },
+                { width: '90%', text: 'Initializing UI...' },
+                { width: '100%', text: 'Ready' }
+            ];
+
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step >= steps.length) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        screen.classList.add('hidden');
+                    }, 500);
+                    return;
+                }
+
+                bar.style.width = steps[step].width;
+                status.innerText = steps[step].text;
+                step++;
+            }, 600);
+        }
+
+        // Init
+        startLoading();
+        loadSettings();
+        loadSession();
+        refreshScripts();
+        checkStatus();
+        updateHomeStats();
+        updateHomeStatus();
+        setInterval(() => { refreshScripts(); updateHomeStats(); }, 5000);
+        setInterval(() => { checkStatus(); updateHomeStatus(); }, 3000);
+        window.addEventListener('beforeunload', saveSession);
+    </script>
+</body>
+
+</html>
