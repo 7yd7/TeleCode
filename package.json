@@ -22,9 +22,7 @@
     },
     "extraResources": [
       "Theme/**",
-      "front.png",
-      "TeleCode-icon.png",
-      "TeleCode-icon.ico"
+      "Data/**"
     ]
   },
   "dependencies": {

@@ -38,9 +38,11 @@ if (!gotTheLock) {
 
     // Asset Paths: Prefer resourcesPath when packaged to keep root clean
     const RESOURCES_PATH = IS_PACKAGED ? process.resourcesPath : __dirname;
-    const BRAND_ICON_PNG = path.join(RESOURCES_PATH, 'TeleCode-icon.png');
-    const BRAND_ICON_ICO = path.join(RESOURCES_PATH, 'TeleCode-icon.ico');
-    const FALLBACK_ICON = path.join(RESOURCES_PATH, 'front.png');
+
+    // Icons moved to Data folder
+    const BRAND_ICON_PNG = path.join(DATA_DIR, 'TeleCode-icon.png');
+    const BRAND_ICON_ICO = path.join(DATA_DIR, 'TeleCode-icon.ico');
+    const FALLBACK_ICON = path.join(DATA_DIR, 'front.png');
 
     const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
 
