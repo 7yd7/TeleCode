@@ -175,7 +175,7 @@ if (!gotTheLock) {
         try {
             if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
         } catch (e) { }
-        return { lastTheme: 'TeleCode-UI' };
+        return { lastTheme: 'TeleCode-ui' };
     }
 
     function saveConfig(config) {
@@ -309,6 +309,12 @@ loadstring(game:HttpGet(getgenv().TeleCodeIP .. "/loader"))()`;
     // --- IPC & Handlers ---
     ipcMain.on('window-hide', () => { if (mainWindow) mainWindow.hide(); });
     ipcMain.on('window-minimize', () => { if (mainWindow) mainWindow.minimize(); });
+    ipcMain.on('window-maximize-toggle', () => {
+        if (mainWindow) {
+            if (mainWindow.isMaximized()) mainWindow.unmaximize();
+            else mainWindow.maximize();
+        }
+    });
 
     ipcMain.handle('get-scripts', async () => {
         if (!fs.existsSync(SAVE_DIR)) return [];
@@ -373,6 +379,20 @@ loadstring(game:HttpGet(getgenv().TeleCodeIP .. "/loader"))()`;
                 name: path.basename(result.filePaths[0]),
                 content: fs.readFileSync(result.filePaths[0], 'utf8')
             };
+        }
+        return null;
+    });
+
+    ipcMain.handle('save-file-dialog', async (event, content) => {
+        const { filePath } = await dialog.showSaveDialog(mainWindow, {
+            title: 'Save Script',
+            defaultPath: 'Script.lua',
+            filters: [{ name: 'Lua Script', extensions: ['lua'] }, { name: 'All Files', extensions: ['*'] }]
+        });
+
+        if (filePath) {
+            fs.writeFileSync(filePath, content);
+            return path.basename(filePath);
         }
         return null;
     });

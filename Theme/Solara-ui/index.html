@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solara</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg-main: #000000;
+            --bg-secondary: #0a0a0a;
+            --accent: #5865F2;
+            --text: #ffffff;
+            --text-dim: #888888;
+            --border: #1a1a1a;
+            --tab-bg: #111111;
+            --tab-active: #000000;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            border: 1px solid #222;
+            box-sizing: border-box;
+        }
+
+        /* ROW 1: TITLE BAR (Logo + Controls) */
+        .titlebar {
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+            -webkit-app-region: drag;
+            background: var(--bg-main);
+            border-bottom: 1px solid #111;
+            flex-shrink: 0;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-img {
+            height: 24px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 8px rgba(88, 101, 242, 0.4));
+        }
+
+        /* Status Dot next to Solara Logo */
+        .status-dot-title {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #ff3333;
+            box-shadow: 0 0 6px #ff3333;
+        }
+
+        .status-dot-title.connected {
+            background-color: #00ff88;
+            box-shadow: 0 0 6px #00ff88;
+        }
+
+        .window-controls {
+            display: flex;
+            -webkit-app-region: no-drag;
+            gap: 4px;
+        }
+
+        .win-btn {
+            width: 32px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .win-btn:hover {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .win-close:hover {
+            background: #d71a1a;
+        }
+
+        /* ROW 2: TAB BAR */
+        .tabbar-row {
+            height: 36px;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            background: var(--bg-main);
+            border-bottom: 1px solid #111;
+            -webkit-app-region: no-drag;
+            flex-shrink: 0;
+        }
+
+        .tabs-scroll {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            overflow-x: auto;
+            height: 100%;
+            padding-top: 4px;
+            /* Push tabs down slightly */
+        }
+
+        .tabs-scroll::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            background: #050505;
+            border: 1px solid #222;
+            color: var(--text-dim);
+            padding: 0 12px;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+            max-width: 150px;
+            transition: all 0.2s;
+            height: 28px;
+            margin-bottom: -1px;
+            /* Connect to editor */
+        }
+
+        .tab:hover {
+            background: #111;
+            color: #ccc;
+        }
+
+        .tab.active {
+            background: var(--bg-main);
+            border-color: #333;
+            border-bottom-color: var(--bg-main);
+            color: var(--text);
+            height: 29px;
+            /* Extend over border */
+            z-index: 10;
+        }
+
+        .tab-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-close {
+            font-size: 10px;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+        }
+
+        .tab-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .new-tab-btn {
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-dim);
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .new-tab-btn:hover {
+            color: #fff;
+            background: #111;
+            border-radius: 4px;
+        }
+
+        /* EDITOR AND SIDEBAR WRAPPER */
+        .workspace-inner {
+            display: flex;
+            flex: 1;
+            position: relative;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            position: relative;
+            background: var(--bg-main);
+        }
+
+        #editor {
+            position: absolute;
+            inset: 0;
+            background: transparent;
+        }
+
+        /* FOOTER */
+        .footer {
+            height: 48px;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            justify-content: space-between;
+            border-top: 1px solid #111;
+            flex-shrink: 0;
+        }
+
+        .footer-left {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid #1a1a1a;
+            background: #080808;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #111;
+            border-color: #333;
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .icon-btn svg {
+            width: 15px;
+            height: 15px;
+        }
+
+        .btn-play:hover {
+            color: var(--accent);
+            border-color: rgba(88, 101, 242, 0.3);
+        }
+
+        .btn-clear:hover {
+            color: #ff5555;
+        }
+
+        .btn-save:hover {
+            color: #55aaff;
+        }
+
+        .footer-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .attach-btn {
+            background: transparent;
+            border: none;
+            color: #444;
+            cursor: pointer;
+        }
+
+        .attach-btn:hover {
+            color: #fff;
+        }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #222;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ROW 1: Title Bar -->
+    <div class="titlebar">
+        <div class="logo-section">
+            <img src="./solara.png" class="logo-img" onerror="this.src='../../Data/front.png'">
+            <!-- Status Dot (Red/Green) -->
+            <div class="status-dot-title" id="status-dot"></div>
+        </div>
+
+        <div class="window-controls">
+            <!-- Minimize -->
+            <div class="win-btn" onclick="ipcRenderer.send('window-minimize')">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                    <line x1="1" y1="6" x2="11" y2="6"></line>
+                </svg>
+            </div>
+            <!-- Maximize (Toggle) -->
+            <div class="win-btn" onclick="toggleMaximize()">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                    <rect x="2" y="2" width="8" height="8"></rect>
+                </svg>
+            </div>
+            <!-- Close -->
+            <div class="win-btn win-close" onclick="window.close()">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor">
+                    <line x1="2" y1="2" x2="10" y2="10"></line>
+                    <line x1="10" y1="2" x2="2" y2="10"></line>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 2: Tab Bar -->
+    <div class="tabbar-row">
+        <div class="tabs-scroll" id="tabs-container">
+            <!-- Tabs injected here -->
+        </div>
+        <div class="new-tab-btn" onclick="addTab()">+</div>
+    </div>
+
+    <!-- ROW 3: Editor -->
+    <div class="workspace-inner">
+        <div class="editor-wrapper">
+            <div id="editor"></div>
+        </div>
+    </div>
+
+    <!-- ROW 4: Footer -->
+    <div class="footer">
+        <div class="footer-left">
+            <!-- Execute -->
+            <button class="icon-btn btn-play" onclick="executeScript()" title="Execute">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+            </button>
+
+            <!-- Clear -->
+            <button class="icon-btn btn-clear" onclick="clearEditor()" title="Clear">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                </svg>
+            </button>
+
+            <!-- Open File -->
+            <button class="icon-btn" onclick="openFile()" title="Open File">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+
+            <!-- Save As -->
+            <button class="icon-btn btn-save" onclick="saveFileAs()" title="Save As">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+            </button>
+        </div>
+
+        <div class="footer-right">
+            <button class="icon-btn attach-btn" title="Inject/Attach">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path
+                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                    </path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+
+        let editor;
+        let tabs = [];
+        let activeTabId = null;
+        let isMaximized = false;
+
+        // Custom Solara Theme for Ace
+        ace.define("ace/theme/solara_dark", ["require", "exports", "module", "ace/lib/dom"], function (require, exports, module) {
+            exports.isDark = true;
+            exports.cssClass = "ace-solara-dark";
+            exports.cssText = `
+                .ace-solara-dark .ace_gutter { background: #000000; color: #444; }
+                .ace-solara-dark .ace_print-margin { width: 1px; background: #222; }
+                .ace-solara-dark { background-color: #000000; color: #D4D4D4; }
+                .ace-solara-dark .ace_cursor { color: #5865F2; }
+                .ace-solara-dark .ace_marker-layer .ace_selection { background: rgba(88, 101, 242, 0.2); }
+                .ace-solara-dark .ace_multiselect .ace_selection.ace_start { box-shadow: 0 0 3px 0px #000000; }
+                .ace-solara-dark .ace_marker-layer .ace_step { background: rgb(198, 219, 174); }
+                .ace-solara-dark .ace_marker-layer .ace_bracket { margin: -1px 0 0 -1px; border: 1px solid #666; }
+                .ace-solara-dark .ace_marker-layer .ace_active-line { background: rgba(255, 255, 255, 0.03); }
+                .ace-solara-dark .ace_gutter-active-line { background-color: rgba(255, 255, 255, 0.03); }
+                .ace-solara-dark .ace_marker-layer .ace_selected-word { border: 1px solid rgba(88, 101, 242, 0.4); }
+                .ace-solara-dark .ace_fold { background-color: #5865F2; border-color: #D4D4D4; }
+                .ace-solara-dark .ace_keyword { color: #C678DD; } /* Purple */
+                .ace-solara-dark .ace_constant.ace_language { color: #56B6C2; }
+                .ace-solara-dark .ace_constant.ace_numeric { color: #D19A66; }
+                .ace-solara-dark .ace_storage { color: #C678DD; }
+                .ace-solara-dark .ace_string { color: #98C379; } /* Green */
+                .ace-solara-dark .ace_comment { color: #5C6370; font-style: italic; }
+                .ace-solara-dark .ace_function { color: #61AFEF; } /* Blue */
+                .ace-solara-dark .ace_variable { color: #E06C75; }
+            `;
+            var dom = require("../lib/dom");
+            dom.importCssString(exports.cssText, exports.cssClass);
+        });
+
+        // Initialize Editor
+        window.addEventListener('DOMContentLoaded', () => {
+            editor = ace.edit("editor");
+            editor.setTheme("ace/theme/solara_dark");
+            editor.session.setMode("ace/mode/lua");
+            editor.setOptions({
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: "13px",
+                showPrintMargin: false,
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                cursorStyle: "smooth",
+                scrollPastEnd: 0.5
+            });
+
+            // Auto Save Session on Change
+            editor.on('change', () => {
+                if (activeTabId) {
+                    const t = tabs.find(x => x.id === activeTabId);
+                    if (t) {
+                        t.content = editor.getValue();
+                        saveSession();
+                    }
+                }
+            });
+
+            loadSession(); // Restore tabs
+
+            if (tabs.length === 0) addTab(); // Default if empty
+
+            setInterval(checkStatus, 2000);
+            checkStatus();
+        });
+
+        function toggleMaximize() {
+            ipcRenderer.send('window-maximize-toggle');
+            isMaximized = !isMaximized;
+        }
+
+        // --- Session Management ---
+        function saveSession() {
+            try {
+                const session = {
+                    tabs: tabs,
+                    activeId: activeTabId
+                };
+                localStorage.setItem('solara_session_v1', JSON.stringify(session));
+            } catch (e) { }
+        }
+
+        function loadSession() {
+            try {
+                const raw = localStorage.getItem('solara_session_v1');
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session.tabs && session.tabs.length > 0) {
+                        tabs = session.tabs;
+                        renderTabs();
+                        if (session.activeId && tabs.find(t => t.id === session.activeId)) {
+                            switchTab(session.activeId);
+                        } else {
+                            switchTab(tabs[0].id);
+                        }
+                    }
+                }
+            } catch (e) { }
+        }
+
+        // --- Tabs Logic ---
+        function addTab(name = 'Untitled', content = '') {
+            const id = Date.now();
+            if (name === 'Untitled') name = `Script ${tabs.length + 1}.lua`;
+            const tab = { id, name, content };
+            tabs.push(tab);
+            renderTabs();
+            switchTab(id);
+            saveSession();
+        }
+
+        function closeTab(id, event) {
+            if (event) event.stopPropagation();
+            if (tabs.length === 1) return;
+
+            const idx = tabs.findIndex(t => t.id === id);
+            tabs = tabs.filter(t => t.id !== id);
+
+            if (activeTabId === id) {
+                const newIdx = Math.max(0, idx - 1);
+                switchTab(tabs[newIdx].id);
+            } else {
+                renderTabs();
+            }
+            saveSession();
+        }
+
+        function switchTab(id) {
+            if (activeTabId) {
+                const currentTab = tabs.find(t => t.id === activeTabId);
+                if (currentTab) currentTab.content = editor.getValue();
+            }
+            activeTabId = id;
+            const tab = tabs.find(t => t.id === id);
+            if (tab) {
+                editor.setValue(tab.content, -1);
+            }
+            renderTabs();
+
+            // Update active state in tabs array specifically if needed for session
+            // (Though we just save activeId)
+            saveSession();
+        }
+
+        function renderTabs() {
+            const container = document.getElementById('tabs-container');
+            container.innerHTML = '';
+
+            tabs.forEach(tab => {
+                const el = document.createElement('div');
+                el.className = `tab ${tab.id === activeTabId ? 'active' : ''}`;
+
+                const span = document.createElement('span');
+                span.className = 'tab-name';
+                span.innerText = tab.name;
+
+                const closeBtn = document.createElement('div');
+                closeBtn.className = 'tab-close';
+                closeBtn.innerText = '✕';
+                closeBtn.onclick = (e) => closeTab(tab.id, e);
+
+                el.appendChild(span);
+                el.appendChild(closeBtn);
+
+                el.onclick = () => switchTab(tab.id);
+                container.appendChild(el);
+            });
+        }
+
+        // --- Features ---
+        async function executeScript() {
+            const code = editor.getValue();
+            if (code.trim()) {
+                fetch('http://localhost:3000/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ script: code })
+                }).catch(err => console.error(err));
+            }
+        }
+
+        function clearEditor() {
+            editor.setValue('');
+            const t = tabs.find(x => x.id === activeTabId);
+            if (t) { t.content = ''; saveSession(); }
+        }
+
+        async function openFile() {
+            const result = await ipcRenderer.invoke('open-file-dialog');
+            if (result) {
+                // Check if already open logic could go here
+                addTab(result.name, result.content);
+            }
+        }
+
+        async function saveFileAs() {
+            const content = editor.getValue();
+            const fileName = await ipcRenderer.invoke('save-file-dialog', content);
+            if (fileName) {
+                const tab = tabs.find(t => t.id === activeTabId);
+                if (tab) {
+                    tab.name = fileName;
+                    renderTabs();
+                    saveSession();
+                }
+            }
+        }
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('http://localhost:3000/status');
+                const data = await res.json();
+                const isConnected = data.clients && data.clients > 0;
+                const dot = document.getElementById('status-dot');
+                if (isConnected) dot.classList.add('connected');
+                else dot.classList.remove('connected');
+            } catch (e) {
+                document.getElementById('status-dot').classList.remove('connected');
+            }
+        }
+
+    </script>
+</body>
+
+</html>
