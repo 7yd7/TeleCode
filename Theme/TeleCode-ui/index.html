@@ -185,6 +185,12 @@
             color: #fff;
         }
 
+        .list-item.selected {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid var(--bg-accent);
+        }
+
         .list-item .item-name {
             flex: 1;
             overflow: hidden;
@@ -755,8 +761,55 @@
             font-size: 11px;
             color: var(--text-dim);
             text-transform: uppercase;
-            letter-spacing: 1px;
+        }
+
+        .section {
+            padding: 0 15px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            max-height: 250px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 12px;
+            padding: 0 5px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            overflow-y: auto;
+            border-radius: 8px;
+            padding-right: 4px;
+        }
+
+        /* Custom Scrollbar */
+        .item-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .item-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .item-list::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .item-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .setting-item {
@@ -890,6 +943,140 @@
             background: var(--bg-hover);
             color: var(--text);
         }
+
+        /* CUSTOM MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            /* Darker black background */
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.visible {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-box {
+            background: var(--bg-sidebar);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+
+        .modal-overlay.visible .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .modal-close {
+            cursor: pointer;
+            color: var(--text-dim);
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-message {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .modal-input:focus {
+            border-color: var(--bg-accent);
+            background: var(--bg-hover);
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: var(--bg-accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-danger {
+            background: var(--bg-danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            filter: brightness(1.1);
+        }
     </style>
 </head>
 
@@ -940,6 +1127,16 @@
             </div>
             <div class="item-list" id="saves-list">
                 <div class="empty-state">No files saved</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <span>AutoExec</span>
+                <span class="count" id="autoexec-count">0</span>
+            </div>
+            <div class="item-list" id="autoexec-list">
+                <div class="empty-state">No autoexec scripts</div>
             </div>
         </div>
 
@@ -1049,13 +1246,14 @@
 
     <!-- Context Menu -->
     <div class="context-menu" id="context-menu">
-        <div class="context-item primary" onclick="runContextScript()">▶ Run</div>
+        <div class="context-item primary" id="ctx-run" onclick="runContextScript()">▶ Run</div>
         <div class="context-divider"></div>
-        <div class="context-item" onclick="renameScript()">Rename</div>
-        <div class="context-item" onclick="duplicateScript()">Duplicate</div>
-        <div class="context-item" onclick="saveScriptToSaves()">Save to Saves</div>
+        <div class="context-item" id="ctx-rename" onclick="renameContextItem()">Rename (F2)</div>
+        <div class="context-item" id="ctx-save" onclick="saveContextToSaves()">Save to Saves</div>
+        <div class="context-item" id="ctx-move-auto" onclick="moveContextItem('autoexec')">Move to AutoExec</div>
+        <div class="context-item" id="ctx-move-save" onclick="moveContextItem('save')">Move to Saves</div>
         <div class="context-divider"></div>
-        <div class="context-item danger" onclick="deleteScript()">Delete</div>
+        <div class="context-item danger" id="ctx-delete" onclick="deleteContextItem()">Delete</div>
     </div>
 
     <!-- Settings Modal -->
@@ -1123,6 +1321,25 @@
         </div>
     </div>
 
+    <!-- START CUSTOM MODAL -->
+    <div class="modal-overlay" id="custom-modal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span class="modal-title" id="modal-title">Action</span>
+                <div class="modal-close" onclick="closeModal()">×</div>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" id="modal-message" style="display:none"></p>
+                <input type="text" class="modal-input" id="modal-input" placeholder="Type here..." autocomplete="off">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+    <!-- END CUSTOM MODAL -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ext-language_tools.js"></script>
     <script>
@@ -1134,7 +1351,9 @@
         let tabs = [];
         let activeId = null;
         let allSaves = [];
+        let allAutoExec = [];
         let contextTarget = null;
+        let contextType = 'tab'; // 'tab', 'save', 'autoexec'
         let hasUnsavedChanges = false;
 
         const editor = ace.edit("editor");
@@ -1240,9 +1459,11 @@
             updateUI();
         }
 
-        function addNewTab(name = 'Untitled.lua', content = '-- TeleCode\n') {
+        let selectedItem = null; // { id: string|number, type: 'tab'|'save'|'autoexec' }
+
+        function addNewTab(name = 'Untitled.lua', content = '', origin = 'new') {
             const id = Date.now();
-            tabs.push({ id, name, content });
+            tabs.push({ id, name, content, origin });
             switchTab(id);
             renderScripts();
         }
@@ -1285,10 +1506,22 @@
             el.innerHTML = '';
             tabs.forEach(t => {
                 const div = document.createElement('div');
-                div.className = `list-item ${t.id === activeId ? 'active' : ''}`;
+                div.className = `list-item ${t.id === activeId ? 'active' : ''} ${selectedItem?.id === t.id && selectedItem?.type === 'tab' ? 'selected' : ''}`;
+                div.setAttribute('draggable', 'true');
+                div.ondragstart = (e) => handleDragStart(e, 'tab', t.id);
                 div.innerHTML = `<span class="item-name">${t.name}</span><span class="item-close" onclick="closeScript(event, ${t.id})">×</span>`;
-                div.onclick = () => switchTab(t.id);
-                div.oncontextmenu = (e) => showContextMenu(e, t.id);
+                div.onclick = (e) => {
+                    e.stopPropagation();
+                    selectItem(t.id, 'tab');
+                    switchTab(t.id);
+                };
+                div.ondblclick = (e) => {
+                    e.stopPropagation();
+                    contextTarget = t.id;
+                    contextType = 'tab';
+                    renameContextItem();
+                };
+                div.oncontextmenu = (e) => showContextMenu(e, t.id, 'tab');
                 el.appendChild(div);
             });
         }
@@ -1297,6 +1530,10 @@
             const scripts = await ipcRenderer.invoke('get-scripts');
             allSaves = scripts;
             renderSaves(scripts);
+
+            const autoexec = await ipcRenderer.invoke('get-autoexec');
+            allAutoExec = autoexec;
+            renderAutoExec(autoexec);
         }
 
         function renderSaves(scripts = []) {
@@ -1309,14 +1546,66 @@
             el.innerHTML = '';
             scripts.forEach(name => {
                 const div = document.createElement('div');
-                div.className = 'list-item';
+                div.className = `list-item ${selectedItem?.id === name && selectedItem?.type === 'save' ? 'selected' : ''}`;
+                div.setAttribute('draggable', 'true');
+                div.ondragstart = (e) => handleDragStart(e, 'save', name);
                 div.innerHTML = `<span class="item-name">${name}</span>`;
-                div.onclick = async () => {
+                div.onclick = async (e) => {
+                    e.stopPropagation();
+                    selectItem(name, 'save');
                     const content = await ipcRenderer.invoke('read-script', name);
-                    addNewTab(name, content);
+                    // Check if already open
+                    const existing = tabs.find(t => t.name === name && t.origin === 'save');
+                    if (existing) switchTab(existing.id);
+                    else addNewTab(name, content, 'save');
                 };
+                div.ondblclick = (e) => {
+                    e.stopPropagation();
+                    contextTarget = name;
+                    contextType = 'save';
+                    renameContextItem();
+                };
+                div.oncontextmenu = (e) => showContextMenu(e, name, 'save');
                 el.appendChild(div);
             });
+            el.ondragover = (e) => e.preventDefault();
+            el.ondrop = (e) => handleDrop(e, 'save');
+        }
+
+        function renderAutoExec(scripts = []) {
+            const el = document.getElementById('autoexec-list');
+            document.getElementById('autoexec-count').innerText = scripts.length;
+            if (scripts.length === 0) {
+                el.innerHTML = '<div class="empty-state">No autoexec scripts</div>';
+                return;
+            }
+            el.innerHTML = '';
+            scripts.forEach(name => {
+                const div = document.createElement('div');
+                div.className = `list-item ${selectedItem?.id === name && selectedItem?.type === 'autoexec' ? 'selected' : ''}`;
+                div.setAttribute('draggable', 'true');
+                div.ondragstart = (e) => handleDragStart(e, 'autoexec', name);
+                div.innerHTML = `<span class="item-name">${name}</span>`;
+                div.onclick = async (e) => {
+                    e.stopPropagation();
+                    selectItem(name, 'autoexec');
+                    const content = await ipcRenderer.invoke('read-autoexec', name);
+                    // Check if already open
+                    const existing = tabs.find(t => t.name === name && t.origin === 'autoexec');
+                    if (existing) switchTab(existing.id);
+                    else addNewTab(name, content, 'autoexec');
+                };
+                div.ondblclick = (e) => {
+                    e.stopPropagation();
+                    contextTarget = name;
+                    contextType = 'autoexec';
+                    renameContextItem();
+                };
+                div.oncontextmenu = (e) => showContextMenu(e, name, 'autoexec');
+                el.appendChild(div);
+            });
+            el.ondragover = (e) => e.preventDefault();
+            el.ondrop = (e) => handleDrop(e, 'autoexec');
         }
 
         function filterScripts() {
@@ -1338,23 +1627,43 @@
         async function saveScript() {
             const tab = tabs.find(t => t.id === activeId);
             if (!tab) return;
+
+            // Intelligence: Preserve origin
+            let method = 'save-script';
+            if (tab.origin === 'autoexec') method = 'save-autoexec';
+
             let name = tab.name;
-            if (name === 'Untitled.lua' || !name.includes('.')) {
-                name = prompt('Save as:', tab.name || 'script.lua');
-                if (!name) return;
+            if (name === 'Untitled.lua' || !name.includes('.') || tab.origin === 'new') {
+                // If new, ask where to save (default to Saves for now via modal)
+                showModal('rename', {
+                    title: 'Save Script',
+                    value: name,
+                    onConfirm: async (newName) => {
+                        if (newName) {
+                            await ipcRenderer.invoke('save-script', { name: newName, content: editor.getValue() });
+                            tab.name = newName;
+                            tab.origin = 'save'; // Now it lives in saves
+                            hasUnsavedChanges = false;
+                            document.getElementById('unsaved-dot').classList.remove('show');
+                            refreshScripts();
+                            renderScripts();
+                            updateUI();
+                        }
+                    }
+                });
+                return;
             }
-            await ipcRenderer.invoke('save-script', { name, content: editor.getValue() });
-            tab.name = name;
+
+            // Direct save to origin
+            await ipcRenderer.invoke(method, { name, content: editor.getValue() });
             hasUnsavedChanges = false;
             document.getElementById('unsaved-dot').classList.remove('show');
-            renderScripts();
-            updateUI();
-            refreshScripts();
+            // Toast or visual feeedback?
         }
 
         async function openFile() {
             const result = await ipcRenderer.invoke('open-file-dialog');
-            if (result) addNewTab(result.name, result.content);
+            if (result) addNewTab(result.name, result.content, 'save');
         }
 
         function clearEditor() {
@@ -1366,13 +1675,30 @@
         }
 
         // Context Menu
-        function showContextMenu(e, id) {
+        function showContextMenu(e, id, type) {
             e.preventDefault();
             contextTarget = id;
+            contextType = type;
             const menu = document.getElementById('context-menu');
+
+            // Toggle items based on type
+            const isTab = type === 'tab';
+            const isFile = type === 'save' || type === 'autoexec';
+
+            toggleDisplay('ctx-run', true); // Always run
+            toggleDisplay('ctx-rename', true); // Rename everything
+            toggleDisplay('ctx-save', isTab);
+            toggleDisplay('ctx-move-auto', isTab || type === 'save');
+            toggleDisplay('ctx-move-save', isTab || type === 'autoexec');
+            toggleDisplay('ctx-delete', true);
+
             menu.style.left = e.pageX + 'px';
             menu.style.top = e.pageY + 'px';
             menu.classList.add('visible');
+        }
+
+        function toggleDisplay(id, show) {
+            document.getElementById(id).style.display = show ? 'flex' : 'none';
         }
 
         function hideContextMenu() {
@@ -1384,63 +1710,207 @@
             if (tab) {
                 switchTab(tab.id);
                 execute();
+            } else if (contextType === 'save' || contextType === 'autoexec') {
+                // For files, read then execute (not implemented in execute() yet, so we load then run)
+                // Actually execute() runs editor content. So we load it to a tab then run.
+                const isAuto = contextType === 'autoexec';
+                const method = isAuto ? 'read-autoexec' : 'read-script';
+                ipcRenderer.invoke(method, contextTarget).then(content => {
+                    addNewTab(contextTarget, content, isAuto ? 'autoexec' : 'save');
+                    execute();
+                });
             }
             hideContextMenu();
         }
 
-        function renameScript() {
+        function renameContextItem() {
             hideContextMenu();
-            const tab = tabs.find(t => t.id === contextTarget);
-            if (!tab) return;
-            setTimeout(() => {
-                const name = prompt('Rename:', tab.name);
-                if (name && name.trim()) {
-                    tab.name = name.trim();
-                    renderScripts();
-                    updateUI();
-                }
-            }, 100);
-        }
-
-        function duplicateScript() {
-            const tab = tabs.find(t => t.id === contextTarget);
-            if (tab) addNewTab(tab.name + ' (copy)', tab.content);
-            hideContextMenu();
-        }
-
-        async function saveScriptToSaves() {
-            hideContextMenu();
-            const tab = tabs.find(t => t.id === contextTarget);
-            if (!tab) return;
-
-            // Get fresh content if this is the active tab
-            let content = tab.content;
-            if (tab.id === activeId) {
-                content = editor.getValue();
-                tab.content = content;
-            }
-
-            let name = tab.name;
-            if (name === 'Untitled.lua') {
-                setTimeout(async () => {
-                    name = prompt('Save as:', 'script.lua');
-                    if (!name || !name.trim()) return;
-                    name = name.trim();
-                    await ipcRenderer.invoke('save-script', { name, content });
-                    tab.name = name;
-                    refreshScripts();
-                    renderScripts();
-                    updateUI();
-                }, 100);
+            let currentName = '';
+            if (contextType === 'tab') {
+                const tab = tabs.find(t => t.id === contextTarget);
+                if (tab) currentName = tab.name;
             } else {
-                await ipcRenderer.invoke('save-script', { name, content });
+                currentName = contextTarget;
+            }
+
+            if (!currentName) return;
+
+            showModal('rename', {
+                title: 'Rename Script',
+                value: currentName,
+                onConfirm: (newName) => {
+                    if (!newName || !newName.trim() || newName === currentName) return;
+
+                    if (contextType === 'tab') {
+                        const tab = tabs.find(t => t.id === contextTarget);
+                        if (tab) { tab.name = newName.trim(); renderScripts(); updateUI(); }
+                    } else {
+                        const type = contextType === 'autoexec' ? 'autoexec' : 'save';
+                        ipcRenderer.send('rename-file', { type, oldName: currentName, newName: newName.trim() });
+                        setTimeout(refreshScripts, 200);
+                    }
+                }
+            });
+        }
+
+        async function saveContextToSaves() {
+            hideContextMenu();
+            const tab = tabs.find(t => t.id === contextTarget);
+            if (!tab) return;
+
+            const content = (tab.id === activeId) ? editor.getValue() : tab.content;
+
+            showModal('rename', {
+                title: 'Save As',
+                value: tab.name,
+                onConfirm: async (name) => {
+                    if (name) {
+                        await ipcRenderer.invoke('save-script', { name, content });
+                        if (tab.id === activeId) tab.name = name;
+                        refreshScripts();
+                        renderScripts();
+                        updateUI();
+                    }
+                }
+            });
+        }
+
+        async function moveContextItem(targetType) {
+            hideContextMenu();
+            if (contextType === 'tab') {
+                const tab = tabs.find(t => t.id === contextTarget);
+                if (!tab) return;
+                const content = (tab.id === activeId) ? editor.getValue() : tab.content;
+                const method = targetType === 'autoexec' ? 'save-autoexec' : 'save-script';
+
+                showModal('rename', {
+                    title: `Save to ${targetType === 'autoexec' ? 'AutoExec' : 'Saves'}`,
+                    value: tab.name,
+                    onConfirm: async (name) => {
+                        if (name) {
+                            await ipcRenderer.invoke(method, { name, content });
+                            refreshScripts();
+                        }
+                    }
+                });
+            } else {
+                // ... (Move file logic same as before, no prompt needed usually, or we can prompt for new name)
+                const sourceMethod = contextType === 'autoexec' ? 'read-autoexec' : 'read-script';
+                const content = await ipcRenderer.invoke(sourceMethod, contextTarget);
+
+                const targetMethod = targetType === 'autoexec' ? 'save-autoexec' : 'save-script';
+                await ipcRenderer.invoke(targetMethod, { name: contextTarget, content });
+
+                await ipcRenderer.invoke('delete-file', { type: contextType === 'autoexec' ? 'autoexec' : 'save', name: contextTarget });
                 refreshScripts();
             }
         }
 
-        function deleteScript() {
-            closeScript({ stopPropagation: () => { } }, contextTarget);
+        async function deleteContextItem() {
             hideContextMenu();
+            if (contextType === 'tab') {
+                closeScript({ stopPropagation: () => { } }, contextTarget);
+            } else {
+                showModal('delete', {
+                    title: 'Delete File',
+                    message: `Are you sure you want to delete <b style="color:#fff">${contextTarget}</b>?<br>This action cannot be undone.`,
+                    onConfirm: async () => {
+                        const type = contextType === 'autoexec' ? 'autoexec' : 'save';
+                        await ipcRenderer.invoke('delete-file', { type, name: contextTarget });
+                        refreshScripts();
+                    }
+                });
+            }
+        }
+
+        // --- Custom Modal Logic ---
+        let modalConfirmHandler = null;
+
+        function showModal(type, options) {
+            const el = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const msgEl = document.getElementById('modal-message');
+            const inputEl = document.getElementById('modal-input');
+            const confirmBtn = document.getElementById('modal-confirm');
+
+            titleEl.textContent = options.title || 'Action';
+
+            if (type === 'rename') {
+                msgEl.style.display = 'none';
+                inputEl.style.display = 'block';
+                inputEl.value = options.value || '';
+                confirmBtn.className = 'btn btn-primary';
+                confirmBtn.textContent = 'Save';
+
+                // Focus input after render
+                setTimeout(() => { inputEl.focus(); inputEl.select(); }, 50);
+            } else if (type === 'delete') {
+                msgEl.style.display = 'block';
+                msgEl.innerHTML = options.message || 'Are you sure?';
+                inputEl.style.display = 'none';
+                confirmBtn.className = 'btn btn-danger';
+                confirmBtn.textContent = 'Delete';
+            }
+
+            modalConfirmHandler = () => {
+                if (options.onConfirm) {
+                    if (type === 'rename') options.onConfirm(inputEl.value);
+                    else options.onConfirm();
+                }
+                closeModal();
+            };
+
+            confirmBtn.onclick = modalConfirmHandler;
+
+            // Handle Enter key for rename
+            inputEl.onkeydown = (e) => {
+                if (e.key === 'Enter') modalConfirmHandler();
+                if (e.key === 'Escape') closeModal();
+            }
+
+            el.classList.add('visible');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.remove('visible');
+            modalConfirmHandler = null;
+        }
+
+        // --- Drag and Drop ---
+        function handleDragStart(e, type, id) {
+            e.dataTransfer.setData('text/plain', JSON.stringify({ type, id }));
+        }
+
+        async function handleDrop(e, targetType) {
+            e.preventDefault();
+            try {
+                const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+                if (!data || !data.type) return;
+
+                // Tab -> Folder
+                if (data.type === 'tab') {
+                    const tab = tabs.find(t => t.id === data.id);
+                    if (tab) {
+                        const content = (tab.id === activeId) ? editor.getValue() : tab.content;
+                        const method = targetType === 'autoexec' ? 'save-autoexec' : 'save-script';
+                        // Save directly with tab name
+                        await ipcRenderer.invoke(method, { name: tab.name, content });
+                        refreshScripts();
+                    }
+                }
+                // Folder -> Folder (Move)
+                else if (data.type !== targetType) {
+                    // Move from data.type to targetType
+                    const sourceMethod = data.type === 'autoexec' ? 'read-autoexec' : 'read-script';
+                    const content = await ipcRenderer.invoke(sourceMethod, data.id);
+
+                    const targetMethod = targetType === 'autoexec' ? 'save-autoexec' : 'save-script';
+                    await ipcRenderer.invoke(targetMethod, { name: data.id, content });
+
+                    await ipcRenderer.invoke('delete-file', { type: data.type === 'autoexec' ? 'autoexec' : 'save', name: data.id });
+                    refreshScripts();
+                }
+            } catch (err) { console.error(err); }
         }
 
         document.addEventListener('click', hideContextMenu);
@@ -1511,15 +1981,46 @@
             webFrame.setZoomFactor(1.0);
         }
 
-        // Global keyboard shortcuts
+        // --- Selection Logic ---
+        function selectItem(id, type) {
+            selectedItem = { id, type };
+            // Re-render to show selection state (inefficient but safe for small lists)
+            renderScripts();
+            refreshScripts(); // This re-renders saves/autoexec
+        }
+
+        // Global Click to deselect
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.list-item')) {
+                selectedItem = null;
+                // remove selected class manually to avoid full re-render
+                document.querySelectorAll('.list-item.selected').forEach(el => el.classList.remove('selected'));
+            }
+        });
+
+        // Global Keyboard Shortcuts
         document.addEventListener('keydown', (e) => {
+            if (e.key === 'F2') {
+                if (selectedItem) {
+                    contextTarget = selectedItem.id;
+                    contextType = selectedItem.type;
+                    renameContextItem();
+                } else if (activeId) {
+                    // Fallback to renaming active tab
+                    contextTarget = activeId;
+                    contextType = 'tab';
+                    renameContextItem();
+                }
+            }
             if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
                 e.preventDefault();
                 zoomIn();
-            } else if (e.ctrlKey && e.key === '-') {
+            }
+            if (e.ctrlKey && e.key === '-') {
                 e.preventDefault();
                 zoomOut();
-            } else if (e.ctrlKey && e.key === '0') {
+            }
+            if (e.ctrlKey && e.key === '0') {
                 e.preventDefault();
                 zoomReset();
             }
