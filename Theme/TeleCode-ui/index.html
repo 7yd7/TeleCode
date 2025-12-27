@@ -155,10 +155,27 @@
             font-size: 9px;
         }
 
-        .item-list {
-            max-height: 180px;
+        .explorer-content {
+            flex: 1;
             overflow-y: auto;
+            scrollbar-width: none;
+            /* Firefox */
+        }
+
+        .explorer-content::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari, Edge */
+        }
+
+        .item-list {
             padding: 0 8px 8px;
+            max-height: 250px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .item-list::-webkit-scrollbar {
+            display: none;
         }
 
         .list-item {
@@ -768,48 +785,21 @@
             margin-bottom: 25px;
             display: flex;
             flex-direction: column;
-            max-height: 250px;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            padding: 0 5px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-dim);
-            opacity: 0.6;
         }
 
         .item-list {
             display: flex;
             flex-direction: column;
             gap: 4px;
-            overflow-y: auto;
             border-radius: 8px;
             padding-right: 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            scrollbar-width: none;
         }
 
-        /* Custom Scrollbar */
         .item-list::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .item-list::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .item-list::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        .item-list::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.2);
+            display: none;
         }
 
         .setting-item {
@@ -1110,33 +1100,35 @@
                 oninput="filterScripts()">
         </div>
 
-        <div class="section">
-            <div class="section-header">
-                <span>Scripts</span>
-                <span class="count" id="scripts-count">0</span>
+        <div class="explorer-content">
+            <div class="section">
+                <div class="section-header">
+                    <span>Scripts</span>
+                    <span class="count" id="scripts-count">0</span>
+                </div>
+                <div class="item-list" id="scripts-list">
+                    <div class="empty-state">No scripts open</div>
+                </div>
             </div>
-            <div class="item-list" id="scripts-list">
-                <div class="empty-state">No scripts open</div>
-            </div>
-        </div>
 
-        <div class="section">
-            <div class="section-header">
-                <span>Saves</span>
-                <span class="count" id="saves-count">0</span>
+            <div class="section">
+                <div class="section-header">
+                    <span>Saves</span>
+                    <span class="count" id="saves-count">0</span>
+                </div>
+                <div class="item-list" id="saves-list">
+                    <div class="empty-state">No files saved</div>
+                </div>
             </div>
-            <div class="item-list" id="saves-list">
-                <div class="empty-state">No files saved</div>
-            </div>
-        </div>
 
-        <div class="section">
-            <div class="section-header">
-                <span>AutoExec</span>
-                <span class="count" id="autoexec-count">0</span>
-            </div>
-            <div class="item-list" id="autoexec-list">
-                <div class="empty-state">No autoexec scripts</div>
+            <div class="section">
+                <div class="section-header">
+                    <span>AutoExec</span>
+                    <span class="count" id="autoexec-count">0</span>
+                </div>
+                <div class="item-list" id="autoexec-list">
+                    <div class="empty-state">No autoexec scripts</div>
+                </div>
             </div>
         </div>
 
