@@ -413,13 +413,15 @@
             background: var(--bg-card);
             border-bottom: 1px solid var(--border);
             display: none;
+            /* User requested removal: "lsna bhagth shilh" */
             align-items: center;
             padding: 0 16px;
             gap: 8px;
         }
 
         .file-info.visible {
-            display: flex;
+            display: none;
+            /* Force hide */
         }
 
         .current-file {
@@ -444,7 +446,8 @@
         .editor-wrap {
             flex: 1;
             position: relative;
-            background: #08080c;
+            background: #0e0e12;
+            /* Darker background */
         }
 
         #editor {
@@ -455,7 +458,6 @@
         /* Editor Cursor Animation */
         .ace_cursor {
             border-left: 2px solid var(--bg-accent) !important;
-            animation: cursorBlink 1s infinite;
         }
 
         @keyframes cursorBlink {
@@ -1358,22 +1360,56 @@
             enableBasicAutocompletion: true,
             enableSnippets: true,
             enableLiveAutocompletion: true,
-            cursorStyle: "smooth"
+            cursorStyle: "smooth",
+            fixedWidthGutter: true,
+            displayIndentGuides: false // Cleaner look
         });
 
-        // Custom Roblox completions
+        // Set darker background manually if theme doesn't cover it
+        editor.container.style.background = "#0e0e12";
+
+        // Custom Roblox & Krnl completions
         const langTools = ace.require("ace/ext/language_tools");
+        const luauCompletions = [
+            // Roblox / Luau
+            { value: 'game:GetService("")', caption: 'game:GetService', meta: 'Roblox', score: 1000 },
+            { value: 'Instance.new("")', caption: 'Instance.new', meta: 'Roblox', score: 1000 },
+            { value: 'task.wait()', caption: 'task.wait', meta: 'Luau', score: 1000 },
+            { value: 'task.spawn(function()\n\t\nend)', caption: 'task.spawn', meta: 'Luau', score: 1000 },
+            { value: "game.Players.LocalPlayer", caption: 'LocalPlayer', meta: 'Roblox', score: 1000 },
+            { value: "workspace", caption: 'workspace', meta: 'Roblox', score: 900 },
+
+            // Krnl / Executor
+            { value: 'getgenv()', caption: 'getgenv', meta: 'Krnl', score: 1100 },
+            { value: 'getrenv()', caption: 'getrenv', meta: 'Krnl', score: 1100 },
+            { value: 'getgc()', caption: 'getgc', meta: 'Krnl', score: 1100 },
+            { value: 'getreg()', caption: 'getreg', meta: 'Krnl', score: 1100 },
+            { value: 'getloadedmodules()', caption: 'getloadedmodules', meta: 'Krnl', score: 1100 },
+            { value: 'getconnections()', caption: 'getconnections', meta: 'Krnl', score: 1100 },
+            { value: 'firesignal()', caption: 'firesignal', meta: 'Krnl', score: 1100 },
+            { value: 'fireclickdetector()', caption: 'fireclickdetector', meta: 'Krnl', score: 1100 },
+            { value: 'firetouchinterest()', caption: 'firetouchinterest', meta: 'Krnl', score: 1100 },
+            { value: 'fireproximityprompt()', caption: 'fireproximityprompt', meta: 'Krnl', score: 1100 },
+            { value: 'hookfunction(function() end)', caption: 'hookfunction', meta: 'Krnl', score: 1100 },
+            { value: 'hookmetamethod(game, "__index", function() end)', caption: 'hookmetamethod', meta: 'Krnl', score: 1100 },
+            { value: 'newcclosure(function() end)', caption: 'newcclosure', meta: 'Krnl', score: 1100 },
+            { value: 'checkcaller()', caption: 'checkcaller', meta: 'Krnl', score: 1100 },
+            { value: 'islclosure()', caption: 'islclosure', meta: 'Krnl', score: 1100 },
+            { value: 'iscclosure()', caption: 'iscclosure', meta: 'Krnl', score: 1100 },
+            { value: 'loadstring(game:HttpGet(""))()', caption: 'loadstring', meta: 'Krnl', score: 1100 },
+            { value: 'rconsoleprint("")', caption: 'rconsoleprint', meta: 'Krnl', score: 1100 },
+            { value: 'rconsoleclear()', caption: 'rconsoleclear', meta: 'Krnl', score: 1100 },
+            { value: 'readfile("")', caption: 'readfile', meta: 'Files', score: 1100 },
+            { value: 'writefile("", "")', caption: 'writefile', meta: 'Files', score: 1100 },
+            { value: 'appendfile("", "")', caption: 'appendfile', meta: 'Files', score: 1100 },
+            { value: 'makefolder("")', caption: 'makefolder', meta: 'Files', score: 1100 },
+            { value: 'delfolder("")', caption: 'delfolder', meta: 'Files', score: 1100 },
+            { value: 'delfile("")', caption: 'delfile', meta: 'Files', score: 1100 },
+        ];
+
         langTools.addCompleter({
             getCompletions: (e, s, p, prefix, callback) => {
-                callback(null, [
-                    { value: 'game:GetService("")', caption: 'game:GetService', meta: 'Roblox', score: 1000 },
-                    { value: 'Instance.new("")', caption: 'Instance.new', meta: 'Roblox', score: 1000 },
-                    { value: 'task.wait()', caption: 'task.wait', meta: 'Roblox', score: 1000 },
-                    { value: 'task.spawn(function()\n\t\nend)', caption: 'task.spawn', meta: 'Roblox', score: 1000 },
-                    { value: "game:GetService('Players').LocalPlayer", caption: 'LocalPlayer', meta: 'Roblox', score: 1000 },
-                    { value: "workspace", caption: 'workspace', meta: 'Roblox', score: 900 },
-                    { value: 'loadstring(game:HttpGet(""))()', caption: 'loadstring', meta: 'Roblox', score: 900 },
-                ]);
+                callback(null, luauCompletions);
             }
         });
 
@@ -1470,7 +1506,12 @@
             if (tab) editor.setValue(tab.content, 1);
             hasUnsavedChanges = false;
             document.getElementById('unsaved-dot').classList.remove('show');
+
+            // Full re-render to update highlighting in all lists
             renderScripts();
+            renderSaves(allSaves);
+            renderAutoExec(allAutoExec);
+
             updateUI();
         }
 
@@ -1489,14 +1530,18 @@
             updateUI();
         }
 
-        function renderScripts() {
+        function renderScripts(displayTabs = tabs) {
             const el = document.getElementById('scripts-list');
-            if (tabs.length === 0) {
-                el.innerHTML = '<div class="empty-state">No scripts open</div>';
+            // SMART LIST: Only show 'new' (unsaved) tabs here
+            const visibleTabs = displayTabs.filter(t => t.origin === 'new');
+
+            document.getElementById('scripts-count').innerText = visibleTabs.length;
+            if (visibleTabs.length === 0) {
+                el.innerHTML = '<div class="empty-state">No new scripts</div>';
                 return;
             }
             el.innerHTML = '';
-            tabs.forEach(t => {
+            visibleTabs.forEach(t => {
                 const div = document.createElement('div');
                 div.className = `list-item ${t.id === activeId ? 'active' : ''} ${selectedItem?.id === t.id && selectedItem?.type === 'tab' ? 'selected' : ''}`;
                 div.setAttribute('draggable', 'true');
@@ -1536,9 +1581,16 @@
                 return;
             }
             el.innerHTML = '';
+
+            // Find currently active tab info
+            const activeTab = tabs.find(t => t.id === activeId);
+
             scripts.forEach(name => {
+                // Check if this file is the active one
+                const isActive = activeTab && activeTab.name === name && activeTab.origin === 'save';
+
                 const div = document.createElement('div');
-                div.className = `list-item ${selectedItem?.id === name && selectedItem?.type === 'save' ? 'selected' : ''}`;
+                div.className = `list-item ${isActive ? 'active' : ''} ${selectedItem?.id === name && selectedItem?.type === 'save' ? 'selected' : ''}`;
                 div.setAttribute('draggable', 'true');
                 div.ondragstart = (e) => handleDragStart(e, 'save', name);
                 div.innerHTML = `<span class="item-name">${name}</span>`;
@@ -1572,9 +1624,16 @@
                 return;
             }
             el.innerHTML = '';
+
+            // Find currently active tab info
+            const activeTab = tabs.find(t => t.id === activeId);
+
             scripts.forEach(name => {
+                // Check if this file is the active one
+                const isActive = activeTab && activeTab.name === name && activeTab.origin === 'autoexec';
+
                 const div = document.createElement('div');
-                div.className = `list-item ${selectedItem?.id === name && selectedItem?.type === 'autoexec' ? 'selected' : ''}`;
+                div.className = `list-item ${isActive ? 'active' : ''} ${selectedItem?.id === name && selectedItem?.type === 'autoexec' ? 'selected' : ''}`;
                 div.setAttribute('draggable', 'true');
                 div.ondragstart = (e) => handleDragStart(e, 'autoexec', name);
                 div.innerHTML = `<span class="item-name">${name}</span>`;
@@ -1602,8 +1661,18 @@
 
         function filterScripts() {
             const query = document.getElementById('search-input').value.toLowerCase();
-            const filtered = allSaves.filter(s => s.toLowerCase().includes(query));
-            renderSaves(filtered);
+
+            // Filter Tabs (Scripts)
+            const filteredTabs = tabs.filter(t => t.name.toLowerCase().includes(query));
+            renderScripts(filteredTabs);
+
+            // Filter Saves
+            const filteredSaves = allSaves.filter(s => s.toLowerCase().includes(query));
+            renderSaves(filteredSaves);
+
+            // Filter AutoExec
+            const filteredAuto = allAutoExec.filter(s => s.toLowerCase().includes(query));
+            renderAutoExec(filteredAuto);
         }
 
         async function execute() {
@@ -1705,11 +1774,16 @@
             } else if (contextType === 'save' || contextType === 'autoexec') {
                 // For files, read then execute (not implemented in execute() yet, so we load then run)
                 // Actually execute() runs editor content. So we load it to a tab then run.
+                // Direct Execute for files
                 const isAuto = contextType === 'autoexec';
                 const method = isAuto ? 'read-autoexec' : 'read-script';
                 ipcRenderer.invoke(method, contextTarget).then(content => {
-                    addNewTab(contextTarget, content, isAuto ? 'autoexec' : 'save');
-                    execute();
+                    // Send directly to execution endpoint without opening tab
+                    fetch('http://localhost:3000/execute', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ script: content })
+                    }).catch(e => { console.error("Exec failed", e); });
                 });
             }
             hideContextMenu();
