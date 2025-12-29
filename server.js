@@ -24,7 +24,7 @@ function getLocalExternalIP() {
 setInterval(() => {
     const now = Date.now();
     for (const [id, data] of connectedClients) {
-        if (now - data.lastSeen > 3) { // 10 seconds timeout
+        if (now - data.lastSeen > 3000) { // 3 seconds timeout
             connectedClients.delete(id);
         }
     }

@@ -667,8 +667,7 @@
         }
 
         .client-item.blacklisted {
-            background: rgba(232, 17, 35, 0.12) !important;
-            border: 1px solid rgba(232, 17, 35, 0.25);
+            background: rgba(232, 17, 35, 0.15) !important;
         }
 
         .client-item.blacklisted:hover {
@@ -1599,6 +1598,20 @@
         let hasUnsavedChanges = false;
         let connectedClients = [];
         let blacklistedUsers = JSON.parse(localStorage.getItem('telecode_blacklist') || '[]');
+        let avatarCache = {};
+
+        async function loadAvatar(userId) {
+            if (avatarCache[userId]) return avatarCache[userId];
+            try {
+                const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-bust?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+                const data = await res.json();
+                if (data.data && data.data[0] && data.data[0].imageUrl) {
+                    avatarCache[userId] = data.data[0].imageUrl;
+                    return avatarCache[userId];
+                }
+            } catch (e) { }
+            return `https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png`;
+        }
 
         const editor = ace.edit("editor");
         editor.setTheme("ace/theme/one_dark");
@@ -1755,13 +1768,21 @@
 
             container.innerHTML = displayList.map(c => {
                 const isBlacklisted = blacklistedUsers.some(bu => bu.userId === c.userId);
-                // Use a more reliable avatar URL
-                const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=150&height=150&format=png`;
+
+                // Use cache or trigger load
+                const avatarUrl = avatarCache[c.userId] || `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=150&height=150&format=png`;
+                if (!avatarCache[c.userId]) {
+                    loadAvatar(c.userId).then(url => {
+                        const img = document.getElementById(`avatar-${c.userId}`);
+                        if (img) img.style.backgroundImage = `url('${url}')`;
+                    });
+                }
+
                 const startTimeStr = c.offline ? 'Offline' : `Started ${Math.floor((Date.now() - c.startTime) / 1000)}s ago`;
 
                 return `
                     <div class="client-item ${isBlacklisted ? 'blacklisted' : ''}" onclick="toggleBlacklist('${c.userId}', '${c.name.replace(/'/g, "\\'")}')">
-                        <div class="client-avatar" style="background-image: url('${avatarUrl}')"></div>
+                        <div class="client-avatar" id="avatar-${c.userId}" style="background-image: url('${avatarUrl}')"></div>
                         <div class="client-info">
                             <h4>${c.name}</h4>
                             <p>${startTimeStr}</p>
