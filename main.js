@@ -49,7 +49,8 @@ if (!gotTheLock) {
     // --- Boot / Update Logic ---
     async function startApp() {
         createSplashWindow();
-        await performUpdate();
+        // Don't await performUpdate here to let the window render its pulse animation immediately
+        setTimeout(performUpdate, 500);
     }
 
     function createSplashWindow() {
@@ -59,10 +60,14 @@ if (!gotTheLock) {
             frame: false,
             transparent: true,
             center: true,
+            show: false, // Start hidden to prevent white flash
             icon: fs.existsSync(BRAND_ICON_ICO) ? BRAND_ICON_ICO : undefined,
             webPreferences: { nodeIntegration: true, contextIsolation: false }
         });
         splashWindow.loadFile('splash.html');
+        splashWindow.once('ready-to-show', () => {
+            splashWindow.show();
+        });
     }
 
     let pendingUpdateHash = '';
@@ -166,7 +171,7 @@ if (!gotTheLock) {
             try { fs.unlinkSync(zipPath); } catch (e) { }
 
             // Relaunch the app to apply all changes smoothly
-            app.relaunch();
+            app.relaunch({ execPath: process.env.PORTABLE_EXECUTABLE_APP_FILENAME || process.execPath });
             app.exit(0);
 
         } catch (e) {
