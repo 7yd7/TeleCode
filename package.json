@@ -12,13 +12,14 @@
   "build": {
     "appId": "com.telecode.executor",
     "productName": "TeleCode-Executor",
-    "icon": "TeleCode.ui/TeleCode-icon.png",
+    "icon": "TeleCode-icon.ico",
     "win": {
       "target": "portable",
-      "icon": "TeleCode.ui/TeleCode-icon.ico"
+      "icon": "TeleCode-icon.ico"
     },
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "."
     },
     "extraResources": [
       "Theme/**",
