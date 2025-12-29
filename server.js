@@ -7,7 +7,7 @@ const hostname = '0.0.0.0';
 const port = 3000;
 
 let pendingScript = null;
-const connectedClients = new Map(); // Track connected clients
+const connectedClients = new Map(); // Track connected clients: ID -> { name, userId, startTime, lastSeen, ip }
 
 function getLocalExternalIP() {
     const interfaces = os.networkInterfaces();
@@ -24,8 +24,9 @@ function getLocalExternalIP() {
 // Clean up inactive clients every 5 seconds
 setInterval(() => {
     const now = Date.now();
-    for (const [id, lastSeen] of connectedClients) {
-        if (now - lastSeen > 10000) { // 10 seconds timeout
+    for (const [id, data] of connectedClients) {
+        if (now - data.lastSeen > 10000) { // 10 seconds timeout
+            console.log(`[Server] Client timed out: ${data.name} (${id})`);
             connectedClients.delete(id);
         }
     }
@@ -43,55 +44,87 @@ const server = http.createServer((req, res) => {
         return;
     }
 
+    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
     if (req.method === 'GET') {
         // Status endpoint for UI
-        if (req.url === '/status') {
+        if (url.pathname === '/status') {
+            const data = Array.from(connectedClients.values()).map(c => ({
+                name: c.name,
+                userId: c.userId,
+                startTime: c.startTime,
+                ip: c.ip
+            }));
+
+            // Log for debugging
+            console.log(`[Server] Status checked. ${data.length} active clients.`);
+            if (data.length > 0) {
+                console.log(`[Server] Active: ${data.map(c => c.name).join(', ')}`);
+            }
+
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ clients: connectedClients.size }));
+            res.end(JSON.stringify({ clients: data.length, list: data }));
             return;
         }
 
-        if (req.url === '/fetch') {
-            // Track client by IP
+        if (url.pathname === '/fetch') {
+            // Track client by IP or UserId
             const clientIP = req.socket.remoteAddress || 'unknown';
-            const isNewClient = !connectedClients.has(clientIP);
-            connectedClients.set(clientIP, Date.now());
+            const name = url.searchParams.get('name') || 'Unknown';
+            const userId = url.searchParams.get('userId') || '0';
 
-            // For new clients, run autoexec scripts
-            if (isNewClient && global.getAutoExecScripts) {
-                const autoExecScripts = global.getAutoExecScripts();
-                if (autoExecScripts.length > 0 && !pendingScript) {
-                    // Combine all autoexec scripts into one
-                    pendingScript = autoExecScripts.join('\n\n-- AutoExec Script --\n\n');
-                }
+            const clientKey = userId !== '0' ? userId : clientIP;
+
+            if (!connectedClients.has(clientKey)) {
+                console.log(`[Server] New client: ${name} (${userId}) from ${clientIP}`);
+                connectedClients.set(clientKey, {
+                    name,
+                    userId,
+                    startTime: Date.now(),
+                    lastSeen: Date.now(),
+                    ip: clientIP
+                });
+            } else {
+                const client = connectedClients.get(clientKey);
+                client.lastSeen = Date.now();
+                client.name = name; // Update in case of change
             }
 
             res.statusCode = 200;
             res.setHeader('Content-Type', 'text/plain');
             res.end(pendingScript || '');
-            pendingScript = null;
+            if (pendingScript) {
+                console.log(`[Server] Script delivered to: ${name}`);
+                pendingScript = null;
+            }
             return;
         }
 
-        if (req.url === '/loader') {
-            const ip = getLocalExternalIP();
-            const loader = `-- External Executor Loader
+        if (url.pathname === '/loader') {
+            const host = req.headers.host || `${getLocalExternalIP()}:${port}`;
+            const loader = `-- TeleCode External Loader
+local HttpService = game:GetService("HttpService")
+local player = game.Players.LocalPlayer
+local baseUrl = "http://${host}"
+
 local function poll()
     local success, script = pcall(function()
-        return game:HttpGet("http://${ip}:${port}/fetch")
+        local name = HttpService:UrlEncode(player.Name)
+        local userId = tostring(player.UserId)
+        return game:HttpGet(baseUrl .. "/fetch?name=" .. name .. "&userId=" .. userId)
     end)
     if success and script and #script > 0 then
         local func, err = loadstring(script)
         if func then
             task.spawn(func)
         else
-            warn("Failed to load script: " .. tostring(err))
+            warn("TeleCode Load Error: " .. tostring(err))
         end
     end
 end
 
-while task.wait(0.05) do
+while task.wait(0.1) do
     poll()
 end`;
             res.statusCode = 200;

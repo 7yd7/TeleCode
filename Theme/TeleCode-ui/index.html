@@ -208,6 +208,26 @@
             border: 1px solid var(--bg-accent);
         }
 
+        .list-item.has-error .item-name {
+            color: #ff4d4d !important;
+            text-shadow: 0 0 5px rgba(255, 77, 77, 0.3);
+        }
+
+        .error-badge {
+            background: linear-gradient(135deg, #ff4d4d, #b30000);
+            color: #fff;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-right: 8px;
+            font-weight: 700;
+            box-shadow: 0 0 8px rgba(255, 77, 77, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 14px;
+        }
+
         .list-item .item-name {
             flex: 1;
             overflow: hidden;
@@ -442,17 +462,263 @@
         }
 
 
-        /* EDITOR */
         .editor-wrap {
             flex: 1;
             position: relative;
             background: #0e0e12;
-            /* Darker background */
+            display: flex;
+            /* For minimap */
         }
 
         #editor {
+            position: relative;
+            /* Changed from absolute to allow flex sharing */
+            flex: 1;
+            height: 100%;
+        }
+
+        #minimap {
+            width: 100px;
+            height: 100%;
+            background: #0e0e12;
+            border-left: 1px solid var(--border);
+            display: none;
+            /* Toggled via settings */
+        }
+
+        /* Error Styling */
+        .error-marker {
             position: absolute;
-            inset: 0;
+            z-index: 20;
+            background: rgba(232, 17, 35, 0.05);
+            border-bottom: 2px dotted #ff4d4d;
+            /* Alternative: actual wavy SVG background */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3" viewBox="0 0 6 3"><path d="M0 2 Q 1.5 0, 3 2 T 6 2" fill="none" stroke="%23ff4d4d" stroke-width="1.5"/></svg>');
+            background-repeat: repeat-x;
+            background-position: bottom;
+            border-bottom: none;
+            height: 100%;
+        }
+
+        .minimap-error-marker {
+            position: absolute;
+            background: rgba(255, 77, 77, 0.6) !important;
+            z-index: 5;
+            left: 0;
+            right: 0;
+        }
+
+        .ace_tooltip {
+            background: rgba(25, 25, 35, 0.8) !important;
+            backdrop-filter: blur(12px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+            color: #eee !important;
+            padding: 8px 12px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 13px !important;
+        }
+
+        /* Custom Search Widget */
+        .find-widget {
+            position: absolute;
+            top: 10px;
+            right: 120px;
+            /* Space for minimap */
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px;
+            display: none;
+            gap: 6px;
+            align-items: center;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .find-input {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            width: 150px;
+            outline: none;
+        }
+
+        .find-input:focus {
+            border-color: var(--bg-accent);
+        }
+
+        .find-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+        }
+
+        .find-btn:hover {
+            color: var(--text);
+            background: var(--bg-hover);
+        }
+
+        /* CLIENT LIST PANEL */
+        .client-panel {
+            position: absolute;
+            bottom: 52px;
+            left: 12px;
+            width: 260px;
+            background: rgba(10, 10, 14, 0.98);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUpClient 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .client-panel.visible {
+            display: flex;
+        }
+
+        @keyframes slideUpClient {
+            from {
+                transform: translateY(8px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .client-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .client-header-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .client-header h3 {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .client-header p {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .client-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .client-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        .client-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .client-item.blacklisted {
+            background: rgba(232, 17, 35, 0.15) !important;
+            border: 1px solid rgba(232, 17, 35, 0.3);
+        }
+
+        .client-item.blacklisted::after {
+            content: "BLACKLISTED";
+            position: absolute;
+            right: 12px;
+            top: 12px;
+            font-size: 8px;
+            font-weight: 800;
+            color: var(--bg-danger);
+            letter-spacing: 0.5px;
+        }
+
+        .client-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: var(--bg-card);
+            background-size: cover;
+            flex-shrink: 0;
+        }
+
+        .client-info h4 {
+            font-size: 12px;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .client-info p {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .client-toggle-btn {
+            padding: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .client-toggle-btn:hover {
+            background: var(--bg-hover);
+            color: var(--text);
+        }
+
+        .client-toggle-btn.active {
+            color: var(--bg-accent);
         }
 
         /* Editor Cursor Animation */
@@ -730,85 +996,90 @@
             animation: fadeIn 0.2s ease-out;
         }
 
+        /* Redesigned Settings */
         .settings-panel {
-            background: var(--bg-sidebar);
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            width: 400px;
+            border-radius: 12px;
+            width: 700px;
+            /* Wider */
+            height: 500px;
             max-height: 80vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-
-        .settings-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: 600;
+            overflow: hidden;
         }
 
-        .settings-close {
-            width: 28px;
-            height: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            cursor: pointer;
-            color: var(--text-dim);
-            transition: 0.2s;
-        }
-
-        .settings-close:hover {
-            background: var(--bg-hover);
-            color: var(--text);
-        }
-
-        .settings-section {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .settings-section:last-child {
-            border-bottom: none;
-        }
-
-        .settings-section-title {
-            font-size: 11px;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-
-        .section {
-            padding: 0 15px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-list {
+        .settings-sidebar {
+            width: 200px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            padding: 20px 10px;
             display: flex;
             flex-direction: column;
             gap: 4px;
-            border-radius: 8px;
-            padding-right: 4px;
-            max-height: 250px;
+        }
+
+        .settings-tab {
+            padding: 10px 16px;
+            border-radius: 6px;
+            color: var(--text-dim);
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-tab:hover {
+            color: var(--text);
+            background: var(--bg-hover);
+        }
+
+        .settings-tab.active {
+            background: var(--bg-accent);
+            color: #fff;
+        }
+
+        .settings-content {
+            flex: 1;
+            padding: 30px;
             overflow-y: auto;
-            scrollbar-width: none;
         }
 
-        .item-list::-webkit-scrollbar {
-            display: none;
+        .settings-header-new {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .setting-item {
+        .setting-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .setting-info p {
+            font-size: 12px;
+            color: var(--text-muted);
         }
 
         .setting-label {
@@ -1146,8 +1417,30 @@
                 </div>
             </div>
             <div class="status">
+                <div class="client-toggle-btn" id="client-list-toggle" onclick="toggleClientList()"
+                    title="Client Management" style="margin-right: 2px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="m12.83 2.18a2 2 0 0 0-1.66 0L2.87 6.33a2 2 0 0 0 0 3.34L11.17 13.82a2 2 0 0 0 1.66 0L21.13 9.67a2 2 0 0 0 0-3.34Z" />
+                        <path d="m2.87 14.33 8.3 4.15a2 2 0 0 0 1.66 0L21.13 14.33" />
+                        <path d="m2.87 10.33 8.3 4.15a2 2 0 0 0 1.66 0L21.13 10.33" />
+                    </svg>
+                </div>
                 <span class="status-dot" id="status-dot"></span>
                 <span id="status-text">Offline</span>
+            </div>
+        </div>
+
+        <!-- Client Management Panel -->
+        <div class="client-panel" id="client-panel">
+            <div class="client-header">
+                <div class="client-header-info">
+                    <h3>All clients</h3>
+                    <p id="client-connected-count">0 connected</p>
+                </div>
+            </div>
+            <div class="client-list" id="client-list-container">
+                <!-- Clients injected here -->
             </div>
         </div>
     </div>
@@ -1207,6 +1500,16 @@
                 </div>
             </div>
             <div id="editor"></div>
+            <div id="minimap"></div>
+
+            <!-- Custom Search Widget -->
+            <div class="find-widget" id="find-widget">
+                <input type="text" class="find-input" id="find-box" placeholder="Find"
+                    onkeydown="handleFindInput(event)">
+                <button class="find-btn" onclick="findNext()" title="Next">↓</button>
+                <button class="find-btn" onclick="findPrev()" title="Previous">↑</button>
+                <button class="find-btn" onclick="closeFind()" title="Close">×</button>
+            </div>
 
             <!-- Floating Icon Toolbar -->
             <div class="floating-toolbar" id="floating-toolbar">
@@ -1253,64 +1556,14 @@
     <!-- Settings Modal -->
     <div class="settings-overlay" id="settings-overlay" onclick="closeSettings(event)">
         <div class="settings-panel" onclick="event.stopPropagation()">
-            <div class="settings-header">
-                <span>Settings</span>
-                <div class="settings-close" onclick="toggleSettings()">×</div>
+            <div class="settings-sidebar">
+                <div class="settings-tab active" onclick="switchSettingsTab('general')" id="tab-general">General</div>
+                <div class="settings-tab" onclick="switchSettingsTab('editor')" id="tab-editor">Editor</div>
+                <div class="settings-tab" onclick="switchSettingsTab('about')" id="tab-about">About</div>
             </div>
 
-            <div class="settings-section">
-                <div class="settings-section-title">Editor</div>
-                <div class="setting-item">
-                    <div>
-                        <div class="setting-label">Large Font</div>
-                        <div class="setting-desc">Use 16px instead of 14px</div>
-                    </div>
-                    <div class="toggle-switch" id="toggle-font" onclick="toggleSetting('largeFont')"></div>
-                </div>
-                <div class="setting-item">
-                    <div>
-                        <div class="setting-label">Line Numbers</div>
-                        <div class="setting-desc">Show line numbers in editor</div>
-                    </div>
-                    <div class="toggle-switch active" id="toggle-lines" onclick="toggleSetting('lineNumbers')"></div>
-                </div>
-                <div class="setting-item">
-                    <div>
-                        <div class="setting-label">Word Wrap</div>
-                        <div class="setting-desc">Wrap long lines</div>
-                    </div>
-                    <div class="toggle-switch" id="toggle-wrap" onclick="toggleSetting('wordWrap')"></div>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <div class="settings-section-title">Execution</div>
-                <div class="setting-item">
-                    <div>
-                        <div class="setting-label">AutoExec</div>
-                        <div class="setting-desc">Run scripts in autoexec folder on connect</div>
-                    </div>
-                    <div class="toggle-switch active" id="toggle-autoexec" onclick="toggleSetting('autoExec')"></div>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <div class="settings-section-title">Window</div>
-                <div class="setting-item">
-                    <div>
-                        <div class="setting-label">Always on Top</div>
-                        <div class="setting-desc">Keep window above other windows</div>
-                    </div>
-                    <div class="toggle-switch" id="toggle-ontop" onclick="toggleSetting('alwaysOnTop')"></div>
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <div class="settings-section-title">About</div>
-                <div style="font-size: 12px; color: var(--text-dim);">
-                    TeleCode v1.5.0<br>
-                    Script Executor
-                </div>
+            <div class="settings-content" id="settings-content">
+                <!-- Content injected by JS -->
             </div>
         </div>
     </div>
@@ -1349,6 +1602,8 @@
         let contextTarget = null;
         let contextType = 'tab'; // 'tab', 'save', 'autoexec'
         let hasUnsavedChanges = false;
+        let connectedClients = [];
+        let blacklistedUsers = JSON.parse(localStorage.getItem('telecode_blacklist') || '[]');
 
         const editor = ace.edit("editor");
         editor.setTheme("ace/theme/one_dark");
@@ -1358,11 +1613,11 @@
             fontSize: "14px",
             showPrintMargin: false,
             enableBasicAutocompletion: true,
-            enableSnippets: true,
             enableLiveAutocompletion: true,
+            enableSnippets: true,
             cursorStyle: "smooth",
             fixedWidthGutter: true,
-            displayIndentGuides: false // Cleaner look
+            displayIndentGuides: false
         });
 
         // Set darker background manually if theme doesn't cover it
@@ -1422,7 +1677,11 @@
         // Session
         function saveSession() {
             const session = {
-                tabs: tabs.map(t => ({ name: t.name, content: t.id === activeId ? editor.getValue() : t.content })),
+                tabs: tabs.map(t => ({
+                    name: t.name,
+                    content: t.id === activeId ? editor.getValue() : t.content,
+                    origin: t.origin // Fix: Save origin
+                })),
                 activeIndex: tabs.findIndex(t => t.id === activeId)
             };
             localStorage.setItem('telecode_session', JSON.stringify(session));
@@ -1436,7 +1695,8 @@
                 if (!session.tabs || session.tabs.length === 0) return;
                 session.tabs.forEach(t => {
                     const id = Date.now() + Math.random();
-                    tabs.push({ id, name: t.name, content: t.content });
+                    // Fix: Restore origin, default to 'new'
+                    tabs.push({ id, name: t.name, content: t.content, origin: t.origin || 'new' });
                 });
                 if (session.activeIndex >= 0 && tabs[session.activeIndex]) {
                     switchTab(tabs[session.activeIndex].id);
@@ -1449,15 +1709,81 @@
         // Status
         async function checkStatus() {
             try {
-                const res = await fetch('http://localhost:3000/status');
+                const res = await fetchWithTimeout('http://localhost:3000/status');
                 const data = await res.json();
+
+                console.log("[Status] API Response:", data);
+                connectedClients = data.list || [];
+
                 const isOnline = data.clients && data.clients > 0;
                 document.getElementById('status-dot').className = isOnline ? 'status-dot online' : 'status-dot';
                 document.getElementById('status-text').innerText = isOnline ? `Active (${data.clients})` : 'No Clients';
+
+                document.getElementById('client-connected-count').innerText = `${data.clients} client${data.clients === 1 ? '' : 's'} connected`;
+
+                if (document.getElementById('client-panel').classList.contains('visible')) {
+                    renderClients();
+                }
             } catch (e) {
                 document.getElementById('status-dot').className = 'status-dot';
                 document.getElementById('status-text').innerText = 'Offline';
             }
+        }
+
+        function toggleClientList() {
+            const panel = document.getElementById('client-panel');
+            const btn = document.getElementById('client-list-toggle');
+            const isVisible = panel.classList.toggle('visible');
+            btn.classList.toggle('active', isVisible);
+            if (isVisible) renderClients();
+        }
+
+        function renderClients() {
+            const container = document.getElementById('client-list-container');
+
+            // Merge active clients with persistent blacklisted users
+            const displayList = [...connectedClients];
+
+            console.log("[Render] Connected Clients:", connectedClients);
+            console.log("[Render] Blacklisted Users:", blacklistedUsers);
+
+            blacklistedUsers.forEach(bu => {
+                if (!displayList.find(c => c.userId === bu.userId)) {
+                    displayList.push({ ...bu, offline: true });
+                }
+            });
+
+            if (displayList.length === 0) {
+                container.innerHTML = '<div class="empty-state">No clients found</div>';
+                return;
+            }
+
+            container.innerHTML = displayList.map(c => {
+                const isBlacklisted = blacklistedUsers.some(bu => bu.userId === c.userId);
+                const avatarUrl = `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=420&height=420&format=png`;
+                const startTimeStr = c.offline ? 'Offline' : `Started ${Math.floor((Date.now() - c.startTime) / 1000)}s ago`;
+
+                return `
+                    <div class="client-item ${isBlacklisted ? 'blacklisted' : ''}" onclick="toggleBlacklist('${c.userId}', '${c.name.replace(/'/g, "\\'")}')">
+                        <div class="client-avatar" style="background-image: url('${avatarUrl}')"></div>
+                        <div class="client-info">
+                            <h4>${c.name}</h4>
+                            <p>${startTimeStr}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleBlacklist(userId, name) {
+            const index = blacklistedUsers.findIndex(u => u.userId === userId);
+            if (index > -1) {
+                blacklistedUsers.splice(index, 1);
+            } else {
+                blacklistedUsers.push({ userId, name });
+            }
+            localStorage.setItem('telecode_blacklist', JSON.stringify(blacklistedUsers));
+            renderClients();
         }
 
         function updateUI() {
@@ -1478,6 +1804,9 @@
         }
 
         function goHome() {
+            // Fix focus state
+            document.activeElement.blur();
+
             if (activeId) {
                 const old = tabs.find(t => t.id === activeId);
                 if (old) old.content = editor.getValue();
@@ -1533,7 +1862,8 @@
         function renderScripts(displayTabs = tabs) {
             const el = document.getElementById('scripts-list');
             // SMART LIST: Only show 'new' (unsaved) tabs here
-            const visibleTabs = displayTabs.filter(t => t.origin === 'new');
+            // Fix: Handle undefined origin by defaulting to 'new'
+            const visibleTabs = displayTabs.filter(t => (t.origin || 'new') === 'new');
 
             document.getElementById('scripts-count').innerText = visibleTabs.length;
             if (visibleTabs.length === 0) {
@@ -1543,10 +1873,16 @@
             el.innerHTML = '';
             visibleTabs.forEach(t => {
                 const div = document.createElement('div');
-                div.className = `list-item ${t.id === activeId ? 'active' : ''} ${selectedItem?.id === t.id && selectedItem?.type === 'tab' ? 'selected' : ''}`;
+                div.className = `list-item ${t.id === activeId ? 'active' : ''} ${selectedItem?.id === t.id && selectedItem?.type === 'tab' ? 'selected' : ''} ${t.errorCount > 0 ? 'has-error' : ''}`;
                 div.setAttribute('draggable', 'true');
                 div.ondragstart = (e) => handleDragStart(e, 'tab', t.id);
-                div.innerHTML = `<span class="item-name">${t.name}</span><span class="item-close" onclick="closeScript(event, ${t.id})">×</span>`;
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center; flex:1; overflow:hidden;">
+                        ${t.errorCount > 0 ? `<span class="error-badge">${t.errorCount}</span>` : ''}
+                        <span class="item-name">${t.name}</span>
+                    </div>
+                    <span class="item-close" onclick="closeScript(event, ${t.id})">×</span>
+                `;
                 div.onclick = (e) => {
                     e.stopPropagation();
                     selectItem(t.id, 'tab');
@@ -1677,10 +2013,14 @@
 
         async function execute() {
             try {
+                const blacklist = blacklistedUsers.map(u => u.userId);
                 await fetch('http://localhost:3000/execute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ script: editor.getValue() })
+                    body: JSON.stringify({
+                        script: editor.getValue(),
+                        blacklist: blacklist
+                    })
                 });
             } catch (e) { }
         }
@@ -1992,7 +2332,8 @@
             lineNumbers: true,
             wordWrap: false,
             autoExec: true,
-            alwaysOnTop: false
+            alwaysOnTop: false,
+            minimap: true
         };
 
         function loadSettings() {
@@ -2092,8 +2433,17 @@
             }
         });
 
+        // --- New Settings Logic ---
         function toggleSettings() {
-            document.getElementById('settings-overlay').classList.toggle('visible');
+            const overlay = document.getElementById('settings-overlay');
+            const isVisible = overlay.classList.contains('visible');
+
+            if (!isVisible) {
+                overlay.classList.add('visible');
+                switchSettingsTab('general'); // Default tab
+            } else {
+                overlay.classList.remove('visible');
+            }
         }
 
         function closeSettings(e) {
@@ -2101,6 +2451,290 @@
                 document.getElementById('settings-overlay').classList.remove('visible');
             }
         }
+
+        function switchSettingsTab(tabName) {
+            // Update tabs
+            document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+
+            // Render content
+            renderSettingsContent(tabName);
+        }
+
+        function renderSettingsContent(tabName) {
+            const container = document.getElementById('settings-content');
+            let html = '';
+
+            if (tabName === 'general') {
+                html = `
+                    <div class="settings-header-new">General</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Window Top</h4>
+                            <p>Keep window above others</p>
+                        </div>
+                        <div class="toggle-switch ${settings.alwaysOnTop ? 'active' : ''}" onclick="toggleSetting('alwaysOnTop')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Auto-Execute</h4>
+                            <p>Run scripts on inject</p>
+                        </div>
+                        <div class="toggle-switch ${settings.autoExec ? 'active' : ''}" onclick="toggleSetting('autoExec')"></div>
+                    </div>
+                `;
+            } else if (tabName === 'editor') {
+                html = `
+                    <div class="settings-header-new">Editor</div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Minimap</h4>
+                            <p>Show code overview on right</p>
+                        </div>
+                        <div class="toggle-switch ${settings.minimap !== false ? 'active' : ''}" onclick="toggleSetting('minimap')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Line Numbers</h4>
+                            <p>Show gutter line numbers</p>
+                        </div>
+                        <div class="toggle-switch ${settings.lineNumbers ? 'active' : ''}" onclick="toggleSetting('lineNumbers')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Large Font</h4>
+                            <p>Increase editor font size</p>
+                        </div>
+                        <div class="toggle-switch ${settings.largeFont ? 'active' : ''}" onclick="toggleSetting('largeFont')"></div>
+                    </div>
+                    <div class="setting-row">
+                        <div class="setting-info">
+                            <h4>Word Wrap</h4>
+                            <p>Wrap long lines</p>
+                        </div>
+                        <div class="toggle-switch ${settings.wordWrap ? 'active' : ''}" onclick="toggleSetting('wordWrap')"></div>
+                    </div>
+                `;
+            } else if (tabName === 'about') {
+                html = `
+                    <div class="settings-header-new">About</div>
+                    <div style="text-align: center; margin-top: 40px;">
+                        <img src="TeleCode-icon.png" onerror="this.src='front.png'" style="width: 64px; margin-bottom: 20px;">
+                        <h3>TeleCode</h3>
+                        <p style="color: var(--text-dim); margin-top: 10px;">Version 1.5.0</p>
+                        <p style="color: var(--text-muted); font-size: 12px; margin-top: 5px;">Created for advanced script execution.</p>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // --- Minimap Logic ---
+        let minimapEditor = null;
+
+        function initMinimap() {
+            if (minimapEditor) return;
+            const el = document.getElementById('minimap');
+            minimapEditor = ace.edit("minimap");
+            minimapEditor.setTheme("ace/theme/one_dark");
+            minimapEditor.session.setMode("ace/mode/lua");
+            minimapEditor.setOptions({
+                readOnly: true,
+                highlightActiveLine: false,
+                highlightGutterLine: false,
+                showPrintMargin: false,
+                showGutter: false,
+                displayIndentGuides: false,
+                fontSize: "2px", // Tiny font for minimap look
+                maxLines: Infinity
+            });
+            minimapEditor.renderer.$cursorLayer.element.style.display = "none";
+            minimapEditor.container.style.background = "#0e0e12";
+
+            // Sync with main editor
+            editor.on('change', () => {
+                minimapEditor.setValue(editor.getValue(), -1);
+            });
+
+            // Sync scroll
+            editor.session.on('changeScrollTop', () => {
+                minimapEditor.session.setScrollTop(editor.session.getScrollTop());
+            });
+
+            // Initial Sync
+            minimapEditor.setValue(editor.getValue(), -1);
+
+            // Click Navigation
+            el.addEventListener('mousedown', (e) => {
+                const rect = el.getBoundingClientRect();
+                const offsetY = e.clientY - rect.top;
+                const lineHeight = minimapEditor.renderer.lineHeight;
+                const targetRow = Math.floor((offsetY + minimapEditor.session.getScrollTop()) / lineHeight);
+
+                editor.scrollToLine(targetRow, true, true, function () { });
+                editor.gotoLine(targetRow + 1, 0, true);
+            });
+
+            updateMinimapVisibility();
+        }
+
+        function updateMinimapVisibility() {
+            const el = document.getElementById('minimap');
+            if (settings.minimap === false) {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+                if (!minimapEditor) initMinimap();
+                minimapEditor.resize();
+            }
+        }
+
+        // --- Custom Search Widget ---
+        function toggleFind() {
+            const widget = document.getElementById('find-widget');
+            const input = document.getElementById('find-box');
+            if (widget.style.display === 'flex') {
+                closeFind();
+            } else {
+                widget.style.display = 'flex';
+                input.focus();
+                input.select();
+            }
+        }
+
+        function closeFind() {
+            document.getElementById('find-widget').style.display = 'none';
+            editor.focus();
+        }
+
+        function handleFindInput(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                findNext();
+            }
+            if (e.key === 'Escape') {
+                closeFind();
+            }
+        }
+
+        function findNext() {
+            const query = document.getElementById('find-box').value;
+            editor.find(query, {
+                backwards: false,
+                wrap: true,
+                caseSensitive: false,
+                wholeWord: false,
+                regExp: false
+            });
+        }
+
+        function findPrev() {
+            const query = document.getElementById('find-box').value;
+            editor.find(query, {
+                backwards: true,
+                wrap: true,
+                caseSensitive: false,
+                wholeWord: false,
+                regExp: false
+            });
+        }
+
+        // Override standard Ctrl+F
+        editor.commands.addCommand({
+            name: 'find',
+            bindKey: { win: 'Ctrl-F', mac: 'Command-F' },
+            exec: toggleFind
+        });
+
+        // --- Error Squiggles ---
+        // Hook into annotations to customize error display
+        editor.session.on("changeAnnotation", function () {
+            const annotations = editor.session.getAnnotations();
+
+            // Clear markers from both editors
+            const clearMarkers = (sess) => {
+                const markers = sess.getMarkers();
+                for (let id in markers) {
+                    if (markers[id].clazz === 'error-marker' || markers[id].clazz === 'minimap-error-marker') {
+                        sess.removeMarker(id);
+                    }
+                }
+            };
+
+            clearMarkers(editor.session);
+            if (minimapEditor) clearMarkers(minimapEditor.session);
+
+            // Add new markers for errors
+            let errorCount = 0;
+            annotations.forEach(a => {
+                if (a.type === 'error') {
+                    errorCount++;
+                    const Range = ace.require('ace/range').Range;
+
+                    // Main editor squiggle
+                    const mainRange = new Range(a.row, 0, a.row, 1000);
+                    editor.session.addMarker(mainRange, "error-marker", "text");
+
+                    // Minimap highlight
+                    if (minimapEditor) {
+                        const miniRange = new Range(a.row, 0, a.row, 1000);
+                        minimapEditor.session.addMarker(miniRange, "minimap-error-marker", "fullLine");
+                    }
+                }
+            });
+
+            // Update active tab error count and re-render sidebar
+            const tab = tabs.find(t => t.id === activeId);
+            if (tab) {
+                tab.errorCount = errorCount;
+                renderScripts();
+            }
+        });
+
+        // Hover for Errors (Advanced Multi-Error & Text-Level)
+        editor.on("mousemove", function (e) {
+            const pos = editor.renderer.screenToTextCoordinates(e.clientX, e.clientY);
+            const annotations = editor.session.getAnnotations();
+
+            // Collect all errors on this row
+            const rowErrors = annotations.filter(a => a.row === pos.row && a.type === 'error');
+
+            if (rowErrors.length > 0) {
+                // Check if hovering over actual text (not just blank space)
+                const line = editor.session.getLine(pos.row);
+                const isOverText = pos.column <= line.length && line.trim().length > 0;
+
+                if (isOverText) {
+                    const message = rowErrors.map(err => `• ${err.text}`).join('\n');
+                    editor.renderer.showTooltip(null, message, e.clientX, e.clientY);
+                    return;
+                }
+            }
+            editor.renderer.hideTooltip();
+        });
+
+        // Hide default gutter annotations if desired, 
+        // but we'll keep them for clicking flexibility unless user specifically said REMOVE gutter icons.
+        // User said: "instead of x, put red line". So let's hide gutter icons for errors.
+        editor.renderer.setShowGutter(true); // Keep gutter for line numbers
+        // We can filter annotations or css hide errors in gutter. 
+        // Simple CSS: .ace_gutter-cell.ace_error { background-image: none; background: transparent; }
+        // We'll add that style dynamically or assumes user edits CSS.
+        // Let's add the style via JS to be safe.
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .ace_gutter-cell.ace_error { background-image: none !important; }
+            .ace_gutter-cell.ace_error::after { display: none; }
+        `;
+        document.head.appendChild(style);
+
+        // Update settings loader
+        const originalApplySettings = applySettings;
+        applySettings = function () {
+            originalApplySettings();
+            updateMinimapVisibility();
+        };
 
         // Update home stats
         function updateHomeStats() {
@@ -2110,7 +2744,7 @@
 
         async function updateHomeStatus() {
             try {
-                const res = await fetch('http://localhost:3000/status');
+                const res = await fetchWithTimeout('http://localhost:3000/status');
                 const data = await res.json();
                 document.getElementById('home-status').innerText = data.clients || 0;
             } catch (e) {
@@ -2118,47 +2752,68 @@
             }
         }
 
+        // Helper for fetch with timeout
+        async function fetchWithTimeout(url, options = {}, timeout = 3000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (e) {
+                clearTimeout(id);
+                throw e;
+            }
+        }
+
         // Loading Animation
-        function startLoading() {
+        async function startLoading() {
             const screen = document.getElementById('loading-screen');
             const status = document.getElementById('loading-status');
             const bar = document.getElementById('loading-bar');
 
             const steps = [
-                { width: '20%', text: 'Finding scripts...' },
-                { width: '45%', text: 'Loading settings...' },
-                { width: '70%', text: 'Connecting to server...' },
-                { width: '90%', text: 'Initializing UI...' },
-                { width: '100%', text: 'Ready' }
+                { width: '20%', text: 'Searching for scripts...', action: async () => { await refreshScripts(); } },
+                { width: '40%', text: 'Loading configuration...', action: () => { loadSettings(); } },
+                { width: '60%', text: 'Connecting to server...', action: async () => { try { await checkStatus(); await updateHomeStatus(); } catch (e) { } } },
+                { width: '85%', text: 'Restoring tabs...', action: () => { loadSession(); updateHomeStats(); } },
+                { width: '100%', text: 'Ready', action: () => { } }
             ];
 
-            let step = 0;
-            const interval = setInterval(() => {
-                if (step >= steps.length) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        screen.classList.add('hidden');
-                    }, 500);
-                    return;
+            try {
+                for (const step of steps) {
+                    if (bar) bar.style.width = step.width;
+                    if (status) status.innerText = step.text;
+                    try {
+                        if (step.action) await step.action();
+                    } catch (e) { console.error("Loading step failed:", e); }
+                    await new Promise(r => setTimeout(r, 200));
                 }
+            } catch (e) {
+                console.error("Critical boot failure:", e);
+            } finally {
+                setTimeout(() => {
+                    if (screen) screen.classList.add('hidden');
+                }, 3000); // Wait a bit more but guaranteed to hide
 
-                bar.style.width = steps[step].width;
-                status.innerText = steps[step].text;
-                step++;
-            }, 600);
+                // Backup hide
+                setTimeout(() => { if (screen) screen.style.display = 'none'; }, 5000);
+            }
         }
 
         // Init
         startLoading();
-        loadSettings();
-        loadSession();
-        refreshScripts();
-        checkStatus();
-        updateHomeStats();
-        updateHomeStatus();
+
         setInterval(() => { refreshScripts(); updateHomeStats(); }, 5000);
         setInterval(() => { checkStatus(); updateHomeStatus(); }, 3000);
         window.addEventListener('beforeunload', saveSession);
+
+        // Debounced save on editor change
+        let saveTimeout;
+        editor.on('change', () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveSession, 1000);
+        });
     </script>
 </body>
 

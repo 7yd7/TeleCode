@@ -6,6 +6,11 @@ if not local_ip or local_ip == "" then
     return 
 end
 
+-- Robust URL formatting
+if not string.find(local_ip, "http://") and not string.find(local_ip, "https://") then
+    local_ip = "http://" .. local_ip
+end
+
 local HttpService = game:GetService("HttpService")
 local player = game.Players.LocalPlayer
 local RETRY_DELAY = 1
