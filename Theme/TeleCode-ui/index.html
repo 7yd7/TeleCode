@@ -652,10 +652,10 @@
         .client-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 4px;
+            gap: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
             cursor: pointer;
             transition: 0.2s;
             background: rgba(255, 255, 255, 0.02);
@@ -675,14 +675,16 @@
         }
 
         .client-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
             background: var(--bg-card);
             background-size: cover;
             background-position: center;
+            background-repeat: no-repeat;
             flex-shrink: 0;
             border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .client-info h4 {
@@ -1603,7 +1605,8 @@
         async function loadAvatar(userId) {
             if (avatarCache[userId]) return avatarCache[userId];
             try {
-                const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-bust?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
+                // Use headshot for closer focus
+                const res = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
                 const data = await res.json();
                 if (data.data && data.data[0] && data.data[0].imageUrl) {
                     avatarCache[userId] = data.data[0].imageUrl;
@@ -1767,11 +1770,14 @@
             }
 
             container.innerHTML = displayList.map(c => {
-                const isBlacklisted = blacklistedUsers.some(bu => bu.userId === c.userId);
+                const isBlacklisted = blacklistedUsers.some(bu => String(bu.userId) === String(c.userId));
 
-                // Use cache or trigger load
-                const avatarUrl = avatarCache[c.userId] || `https://www.roblox.com/headshot-thumbnail/image?userId=${c.userId}&width=150&height=150&format=png`;
-                if (!avatarCache[c.userId]) {
+                // If in cache, use it immediately. Otherwise, show blank + load.
+                // This prevents "doubling" or ghosting of images.
+                const cached = avatarCache[c.userId];
+                const avatarUrl = cached ? `url('${cached}')` : 'none';
+
+                if (!cached) {
                     loadAvatar(c.userId).then(url => {
                         const img = document.getElementById(`avatar-${c.userId}`);
                         if (img) img.style.backgroundImage = `url('${url}')`;
@@ -1782,7 +1788,7 @@
 
                 return `
                     <div class="client-item ${isBlacklisted ? 'blacklisted' : ''}" onclick="toggleBlacklist('${c.userId}', '${c.name.replace(/'/g, "\\'")}')">
-                        <div class="client-avatar" id="avatar-${c.userId}" style="background-image: url('${avatarUrl}')"></div>
+                        <div class="client-avatar" id="avatar-${c.userId}" style="background-image: ${avatarUrl}"></div>
                         <div class="client-info">
                             <h4>${c.name}</h4>
                             <p>${startTimeStr}</p>
@@ -2030,7 +2036,8 @@
 
         async function execute() {
             try {
-                const blacklist = blacklistedUsers.map(u => u.userId);
+                const blacklist = blacklistedUsers.map(u => String(u.userId));
+                console.log("[Execution] Sending blacklist:", blacklist);
                 await fetch('http://localhost:3000/execute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

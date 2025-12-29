@@ -91,6 +91,7 @@ const server = http.createServer((req, res) => {
 
             const script = client.pendingScript || '';
             if (script) {
+                console.log(`[Server] Delivering script to ${name} (${userId})`);
                 client.pendingScript = null; // Clear after delivery
             }
             res.end(script);
@@ -160,17 +161,19 @@ end`;
                 try {
                     const data = JSON.parse(body);
                     const script = data.script;
-                    const blacklist = data.blacklist || [];
+                    const blacklist = (data.blacklist || []).map(id => String(id));
 
                     let count = 0;
                     for (const [id, client] of connectedClients) {
-                        if (!blacklist.includes(client.userId)) {
+                        const isBlocked = blacklist.includes(String(client.userId));
+                        if (!isBlocked) {
                             client.pendingScript = script;
                             count++;
                         } else {
                             client.pendingScript = null; // Clear if blacklisted
                         }
                     }
+                    console.log(`[Server] Execution: Queued for ${count} clients. ${blacklist.length} blacklisted.`);
 
                     res.statusCode = 200;
                     res.end('Script queued');
