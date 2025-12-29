@@ -1,6 +1,6 @@
 {
   "name": "telecode-executor",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "External Script Executor",
   "author": "TeleCode",
   "main": "main.js",
@@ -12,10 +12,10 @@
   "build": {
     "appId": "com.telecode.executor",
     "productName": "TeleCode-Executor",
-    "icon": "TeleCode-icon.ico",
+    "icon": "TeleCode.ui/TeleCode-icon.png",
     "win": {
       "target": "portable",
-      "icon": "TeleCode-icon.ico"
+      "icon": "TeleCode.ui/TeleCode-icon.ico"
     },
     "directories": {
       "output": "dist"
