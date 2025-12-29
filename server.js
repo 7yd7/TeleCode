@@ -24,8 +24,7 @@ function getLocalExternalIP() {
 setInterval(() => {
     const now = Date.now();
     for (const [id, data] of connectedClients) {
-        if (now - data.lastSeen > 10000) { // 10 seconds timeout
-            console.log(`[Server] Client timed out: ${data.name} (${id})`);
+        if (now - data.lastSeen > 3) { // 10 seconds timeout
             connectedClients.delete(id);
         }
     }
@@ -55,11 +54,6 @@ const server = http.createServer((req, res) => {
                 ip: c.ip
             }));
 
-            // Log for debugging
-            console.log(`[Server] Status checked. ${data.length} active clients.`);
-            if (data.length > 0) {
-                console.log(`[Server] Active: ${data.map(c => c.name).join(', ')}`);
-            }
 
             res.statusCode = 200;
             res.setHeader('Content-Type', 'application/json');
@@ -77,7 +71,6 @@ const server = http.createServer((req, res) => {
             let client;
 
             if (!connectedClients.has(clientKey)) {
-                console.log(`[Server] New client: ${name} (${userId}) from ${clientIP}`);
                 client = {
                     name,
                     userId,
@@ -98,7 +91,6 @@ const server = http.createServer((req, res) => {
 
             const script = client.pendingScript || '';
             if (script) {
-                console.log(`[Server] Script delivered to: ${name}`);
                 client.pendingScript = null; // Clear after delivery
             }
             res.end(script);
@@ -180,7 +172,6 @@ end`;
                         }
                     }
 
-                    console.log(`[Server] Script queued for ${count} clients (${blacklist.length} blacklisted)`);
                     res.statusCode = 200;
                     res.end('Script queued');
                 } catch (e) {
