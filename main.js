@@ -66,12 +66,24 @@ if (!gotTheLock) {
     }
 
     async function performUpdate() {
+        const CONFIG_EXISTS = fs.existsSync(CONFIG_PATH);
+
         // Skip update if requested via env
         if (process.env.SKIP_UPDATE) {
             launchMain();
             return;
         }
 
+        if (!CONFIG_EXISTS) {
+            console.log("[Update] First run detected. Updating automatically.");
+            return doActualUpdate();
+        }
+
+        // Existing install - prompt user
+        if (splashWindow) splashWindow.webContents.send('update-prompt');
+    }
+
+    async function doActualUpdate() {
         const repoUrl = 'https://github.com/7yd7/TeleCode/archive/refs/heads/test.zip';
         const zipPath = path.join(os.tmpdir(), 'telecode_update.zip');
 
@@ -102,9 +114,7 @@ if (!gotTheLock) {
                 const relativePath = entry.entryName.substring(rootFolder.length + 1);
                 if (!relativePath) return;
 
-                // --- WHITELIST FILTER ---
-                // Only extract Theme, Save, and autoexec folders.
-                // Ignore main.js, server.js, package.json, and root images.
+                // Extract Theme, Save, and autoexec
                 const shouldExtract =
                     relativePath.startsWith('Theme/') ||
                     relativePath.startsWith('Save/') ||
@@ -119,9 +129,7 @@ if (!gotTheLock) {
                 fs.writeFileSync(targetPath, entry.getData());
             });
 
-            // Cleanup
             try { fs.unlinkSync(zipPath); } catch (e) { }
-
             launchMain();
 
         } catch (e) {
@@ -130,6 +138,10 @@ if (!gotTheLock) {
             setTimeout(launchMain, 2000);
         }
     }
+
+    ipcMain.on('start-update', () => doActualUpdate());
+    ipcMain.on('skip-update', () => launchMain());
+    ipcMain.on('retry-update', () => performUpdate());
 
     function launchMain() {
         if (splashWindow && !splashWindow.isDestroyed()) splashWindow.close();
@@ -146,8 +158,6 @@ if (!gotTheLock) {
         createTray();
     }
 
-    ipcMain.on('retry-update', () => performUpdate());
-    ipcMain.on('skip-update', () => launchMain());
 
     // --- Original Initialization ---
     function ensureStructure() {

@@ -116,23 +116,60 @@
             margin-top: 8px;
         }
 
-        .error {
-            color: #e81123;
-            margin-top: 10px;
-            font-size: 12px;
+        .prompt-container {
             display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            animation: fadeIn 0.3s ease;
         }
 
-        .retry-btn {
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary {
             background: #6366f1;
             color: white;
             border: none;
-            padding: 8px 24px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-top: 15px;
-            cursor: pointer;
-            display: none;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #a1a1aa;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -141,7 +178,7 @@
     <div class="content">
         <img src="TeleCode-icon.png" class="logo" onerror="this.style.display='none'">
         <h1>TeleCode</h1>
-        <p>Checking for updates...</p>
+        <p id="sub-header">Checking for updates...</p>
 
         <div class="progress-container" id="progress">
             <div class="progress-bar-bg">
@@ -150,38 +187,52 @@
             <div class="status-text" id="status">Connecting to GitHub...</div>
         </div>
 
-        <div class="error" id="error"></div>
-        <button class="retry-btn" id="retry-btn" onclick="retry()">Retry</button>
-        <button class="retry-btn" id="skip-btn" onclick="skip()">Skip Update</button>
-    </div>
+        <div class="prompt-container" id="prompt">
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="doUpdate()">Update Now</button>
+                <button class="btn btn-secondary" onclick="skipUpdate()">Later</button>
+            </div>
+        </div>
 
-    <script>
-        const { ipcRenderer } = require('electron');
+        <script>
+            const { ipcRenderer } = require('electron');
 
-        ipcRenderer.on('status', (e, msg) => {
-            document.getElementById('status').innerText = msg;
-        });
+            ipcRenderer.on('status', (e, msg) => {
+                document.getElementById('status').innerText = msg;
+            });
 
-        ipcRenderer.on('error', (e, msg) => {
-            document.getElementById('progress').style.display = 'none';
-            document.getElementById('error').innerText = msg;
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('retry-btn').style.display = 'inline-block';
-            document.getElementById('skip-btn').style.display = 'inline-block';
-        });
+            ipcRenderer.on('update-prompt', () => {
+                document.getElementById('progress').style.display = 'none';
+                document.getElementById('sub-header').innerText = 'New update available!';
+                document.getElementById('prompt').style.display = 'flex';
+            });
 
-        function retry() {
-            document.getElementById('error').style.display = 'none';
-            document.getElementById('retry-btn').style.display = 'none';
-            document.getElementById('skip-btn').style.display = 'none';
-            document.getElementById('progress').style.display = 'flex';
-            ipcRenderer.send('retry-update');
-        }
+            ipcRenderer.on('error', (e, msg) => {
+                document.getElementById('progress').style.display = 'none';
+                document.getElementById('prompt').style.display = 'none';
+                document.getElementById('error').innerText = msg;
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('retry-btn').style.display = 'inline-block';
+            });
 
-        function skip() {
-            ipcRenderer.send('skip-update');
-        }
-    </script>
+            function doUpdate() {
+                document.getElementById('prompt').style.display = 'none';
+                document.getElementById('progress').style.display = 'flex';
+                document.getElementById('sub-header').innerText = 'Updating...';
+                ipcRenderer.send('start-update');
+            }
+
+            function skipUpdate() {
+                ipcRenderer.send('skip-update');
+            }
+
+            function retry() {
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('retry-btn').style.display = 'none';
+                document.getElementById('progress').style.display = 'flex';
+                ipcRenderer.send('retry-update');
+            }
+        </script>
 </body>
 
 </html>

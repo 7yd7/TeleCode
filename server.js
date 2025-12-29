@@ -161,19 +161,13 @@ end`;
                 try {
                     const data = JSON.parse(body);
                     const script = data.script;
-                    const blacklist = (data.blacklist || []).map(id => String(id));
 
                     let count = 0;
                     for (const [id, client] of connectedClients) {
-                        const isBlocked = blacklist.includes(String(client.userId));
-                        if (!isBlocked) {
-                            client.pendingScript = script;
-                            count++;
-                        } else {
-                            client.pendingScript = null; // Clear if blacklisted
-                        }
+                        client.pendingScript = script;
+                        count++;
                     }
-                    console.log(`[Server] Execution: Queued for ${count} clients. ${blacklist.length} blacklisted.`);
+                    console.log(`[Server] Execution: Queued for ${count} clients.`);
 
                     res.statusCode = 200;
                     res.end('Script queued');

@@ -666,13 +666,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        .client-item.blacklisted {
-            background: rgba(232, 17, 35, 0.15) !important;
-        }
-
-        .client-item.blacklisted:hover {
-            background: rgba(232, 17, 35, 0.18) !important;
-        }
 
         .client-avatar {
             width: 48px;
@@ -1599,8 +1592,8 @@
         let contextType = 'tab'; // 'tab', 'save', 'autoexec'
         let hasUnsavedChanges = false;
         let connectedClients = [];
-        let blacklistedUsers = JSON.parse(localStorage.getItem('telecode_blacklist') || '[]');
         let avatarCache = {};
+        localStorage.removeItem('telecode_blacklist'); // Cleanup legacy data
 
         async function loadAvatar(userId) {
             if (avatarCache[userId]) return avatarCache[userId];
@@ -1752,17 +1745,7 @@
         function renderClients() {
             const container = document.getElementById('client-list-container');
 
-            // Merge active clients with persistent blacklisted users
             const displayList = [...connectedClients];
-
-            console.log("[Render] Connected Clients:", connectedClients);
-            console.log("[Render] Blacklisted Users:", blacklistedUsers);
-
-            blacklistedUsers.forEach(bu => {
-                if (!displayList.find(c => c.userId === bu.userId)) {
-                    displayList.push({ ...bu, offline: true });
-                }
-            });
 
             if (displayList.length === 0) {
                 container.innerHTML = '<div class="empty-state">No clients found</div>';
@@ -1770,10 +1753,6 @@
             }
 
             container.innerHTML = displayList.map(c => {
-                const isBlacklisted = blacklistedUsers.some(bu => String(bu.userId) === String(c.userId));
-
-                // If in cache, use it immediately. Otherwise, show blank + load.
-                // This prevents "doubling" or ghosting of images.
                 const cached = avatarCache[c.userId];
                 const avatarUrl = cached ? `url('${cached}')` : 'none';
 
@@ -1784,10 +1763,10 @@
                     });
                 }
 
-                const startTimeStr = c.offline ? 'Offline' : `Started ${Math.floor((Date.now() - c.startTime) / 1000)}s ago`;
+                const startTimeStr = `Started ${Math.floor((Date.now() - c.startTime) / 1000)}s ago`;
 
                 return `
-                    <div class="client-item ${isBlacklisted ? 'blacklisted' : ''}" onclick="toggleBlacklist('${c.userId}', '${c.name.replace(/'/g, "\\'")}')">
+                    <div class="client-item" style="cursor: default;">
                         <div class="client-avatar" id="avatar-${c.userId}" style="background-image: ${avatarUrl}"></div>
                         <div class="client-info">
                             <h4>${c.name}</h4>
@@ -1798,16 +1777,7 @@
             }).join('');
         }
 
-        function toggleBlacklist(userId, name) {
-            const index = blacklistedUsers.findIndex(u => u.userId === userId);
-            if (index > -1) {
-                blacklistedUsers.splice(index, 1);
-            } else {
-                blacklistedUsers.push({ userId, name });
-            }
-            localStorage.setItem('telecode_blacklist', JSON.stringify(blacklistedUsers));
-            renderClients();
-        }
+        // Removed toggleBlacklist function
 
         function updateUI() {
             const hasActive = tabs.length > 0 && activeId !== null;
@@ -2036,14 +2006,11 @@
 
         async function execute() {
             try {
-                const blacklist = blacklistedUsers.map(u => String(u.userId));
-                console.log("[Execution] Sending blacklist:", blacklist);
                 await fetch('http://localhost:3000/execute', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        script: editor.getValue(),
-                        blacklist: blacklist
+                        script: editor.getValue()
                     })
                 });
             } catch (e) { }
@@ -2837,6 +2804,17 @@
         editor.on('change', () => {
             clearTimeout(saveTimeout);
             saveTimeout = setTimeout(saveSession, 1000);
+        });
+
+        // Auto-hide client list when clicking outside
+        document.addEventListener('mousedown', (e) => {
+            const panel = document.getElementById('client-list-panel');
+            const toggle = document.getElementById('client-list-toggle');
+            if (panel && panel.style.display === 'flex') {
+                if (!panel.contains(e.target) && !toggle.contains(e.target)) {
+                    panel.style.display = 'none';
+                }
+            }
         });
     </script>
 </body>
