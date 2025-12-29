@@ -6,8 +6,7 @@ const os = require('os');
 const hostname = '0.0.0.0';
 const port = 3000;
 
-let pendingScript = null;
-const connectedClients = new Map(); // Track connected clients: ID -> { name, userId, startTime, lastSeen, ip }
+const connectedClients = new Map(); // Track connected clients: ID -> { name, userId, startTime, lastSeen, ip, pendingScript }
 
 function getLocalExternalIP() {
     const interfaces = os.networkInterfaces();
@@ -75,29 +74,34 @@ const server = http.createServer((req, res) => {
             const userId = url.searchParams.get('userId') || '0';
 
             const clientKey = userId !== '0' ? userId : clientIP;
+            let client;
 
             if (!connectedClients.has(clientKey)) {
                 console.log(`[Server] New client: ${name} (${userId}) from ${clientIP}`);
-                connectedClients.set(clientKey, {
+                client = {
                     name,
                     userId,
                     startTime: Date.now(),
                     lastSeen: Date.now(),
-                    ip: clientIP
-                });
+                    ip: clientIP,
+                    pendingScript: null
+                };
+                connectedClients.set(clientKey, client);
             } else {
-                const client = connectedClients.get(clientKey);
+                client = connectedClients.get(clientKey);
                 client.lastSeen = Date.now();
                 client.name = name; // Update in case of change
             }
 
             res.statusCode = 200;
             res.setHeader('Content-Type', 'text/plain');
-            res.end(pendingScript || '');
-            if (pendingScript) {
+
+            const script = client.pendingScript || '';
+            if (script) {
                 console.log(`[Server] Script delivered to: ${name}`);
-                pendingScript = null;
+                client.pendingScript = null; // Clear after delivery
             }
+            res.end(script);
             return;
         }
 
@@ -163,7 +167,20 @@ end`;
             if (req.url === '/execute') {
                 try {
                     const data = JSON.parse(body);
-                    pendingScript = data.script;
+                    const script = data.script;
+                    const blacklist = data.blacklist || [];
+
+                    let count = 0;
+                    for (const [id, client] of connectedClients) {
+                        if (!blacklist.includes(client.userId)) {
+                            client.pendingScript = script;
+                            count++;
+                        } else {
+                            client.pendingScript = null; // Clear if blacklisted
+                        }
+                    }
+
+                    console.log(`[Server] Script queued for ${count} clients (${blacklist.length} blacklisted)`);
                     res.statusCode = 200;
                     res.end('Script queued');
                 } catch (e) {
