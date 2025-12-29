@@ -171,6 +171,22 @@
                 transform: translateY(0);
             }
         }
+
+        .universal-skip {
+            position: absolute;
+            bottom: 20px;
+            color: #5a5a66;
+            font-size: 10px;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: 0.2s;
+            opacity: 0.6;
+        }
+
+        .universal-skip:hover {
+            color: #a1a1aa;
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -194,45 +210,53 @@
             </div>
         </div>
 
-        <script>
-            const { ipcRenderer } = require('electron');
+        <div class="universal-skip" onclick="skipUpdate()">Skip Update & Launch</div>
+        <div id="error"
+            style="display: none; color: #e81123; font-size: 11px; margin-top: 15px; text-align: center; max-width: 300px;">
+        </div>
+        <button id="retry-btn" class="btn btn-primary" onclick="retry()"
+            style="display: none; margin-top: 10px;">Retry</button>
+    </div>
 
-            ipcRenderer.on('status', (e, msg) => {
-                document.getElementById('status').innerText = msg;
-            });
+    <script>
+        const { ipcRenderer } = require('electron');
 
-            ipcRenderer.on('update-prompt', () => {
-                document.getElementById('progress').style.display = 'none';
-                document.getElementById('sub-header').innerText = 'New update available!';
-                document.getElementById('prompt').style.display = 'flex';
-            });
+        ipcRenderer.on('status', (e, msg) => {
+            document.getElementById('status').innerText = msg;
+        });
 
-            ipcRenderer.on('error', (e, msg) => {
-                document.getElementById('progress').style.display = 'none';
-                document.getElementById('prompt').style.display = 'none';
-                document.getElementById('error').innerText = msg;
-                document.getElementById('error').style.display = 'block';
-                document.getElementById('retry-btn').style.display = 'inline-block';
-            });
+        ipcRenderer.on('update-prompt', () => {
+            document.getElementById('progress').style.display = 'none';
+            document.getElementById('sub-header').innerText = 'New update available!';
+            document.getElementById('prompt').style.display = 'flex';
+        });
 
-            function doUpdate() {
-                document.getElementById('prompt').style.display = 'none';
-                document.getElementById('progress').style.display = 'flex';
-                document.getElementById('sub-header').innerText = 'Updating...';
-                ipcRenderer.send('start-update');
-            }
+        ipcRenderer.on('error', (e, msg) => {
+            document.getElementById('progress').style.display = 'none';
+            document.getElementById('prompt').style.display = 'none';
+            document.getElementById('error').innerText = msg;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('retry-btn').style.display = 'inline-block';
+        });
 
-            function skipUpdate() {
-                ipcRenderer.send('skip-update');
-            }
+        function doUpdate() {
+            document.getElementById('prompt').style.display = 'none';
+            document.getElementById('progress').style.display = 'flex';
+            document.getElementById('sub-header').innerText = 'Updating...';
+            ipcRenderer.send('start-update');
+        }
 
-            function retry() {
-                document.getElementById('error').style.display = 'none';
-                document.getElementById('retry-btn').style.display = 'none';
-                document.getElementById('progress').style.display = 'flex';
-                ipcRenderer.send('retry-update');
-            }
-        </script>
+        function skipUpdate() {
+            ipcRenderer.send('skip-update');
+        }
+
+        function retry() {
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('retry-btn').style.display = 'none';
+            document.getElementById('progress').style.display = 'flex';
+            ipcRenderer.send('retry-update');
+        }
+    </script>
 </body>
 
 </html>

@@ -39,9 +39,9 @@ if (!gotTheLock) {
     // Asset Paths: Prefer resourcesPath when packaged to keep root clean
     const RESOURCES_PATH = IS_PACKAGED ? process.resourcesPath : __dirname;
 
-    // Icons moved to Data folder
-    const BRAND_ICON_PNG = path.join(DATA_DIR, 'TeleCode-icon.png');
-    const BRAND_ICON_ICO = path.join(DATA_DIR, 'TeleCode-icon.ico');
+    // Icons from Data folder (bundled in extraResources)
+    const BRAND_ICON_PNG = path.join(RESOURCES_PATH, 'Data', 'TeleCode-icon.png');
+    const BRAND_ICON_ICO = path.join(RESOURCES_PATH, 'Data', 'TeleCode-icon.ico');
     const FALLBACK_ICON = path.join(DATA_DIR, 'front.png');
 
     const CONFIG_PATH = path.join(DATA_DIR, 'config.json');
@@ -65,6 +65,8 @@ if (!gotTheLock) {
         splashWindow.loadFile('splash.html');
     }
 
+    let pendingUpdateHash = '';
+
     async function performUpdate() {
         const CONFIG_EXISTS = fs.existsSync(CONFIG_PATH);
 
@@ -74,13 +76,34 @@ if (!gotTheLock) {
             return;
         }
 
+        // Fetch latest commit hash from GitHub to see if we ACTUALLY need an update
+        try {
+            if (splashWindow) splashWindow.webContents.send('status', 'Checking for updates...');
+            const response = await fetch('https://api.github.com/repos/7yd7/TeleCode/commits/test', {
+                headers: { 'User-Agent': 'TeleCode-Executor' }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                pendingUpdateHash = data.sha;
+
+                if (config.lastUpdateHash === pendingUpdateHash) {
+                    console.log("[Update] App is up to date.");
+                    launchMain();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to check for updates:", e);
+        }
+
         if (!CONFIG_EXISTS) {
             console.log("[Update] First run detected. Updating automatically.");
             return doActualUpdate();
         }
 
-        // Existing install - prompt user
+        // Existing install AND new version detected - prompt user
         if (splashWindow) splashWindow.webContents.send('update-prompt');
+        else launchMain();
     }
 
     async function doActualUpdate() {
@@ -90,7 +113,12 @@ if (!gotTheLock) {
         try {
             if (splashWindow) splashWindow.webContents.send('status', 'Connecting to GitHub...');
 
-            const res = await fetch(repoUrl);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+            const res = await fetch(repoUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
             if (!res.ok) throw new Error('Update server unreachable');
 
             if (splashWindow) splashWindow.webContents.send('status', 'Downloading update...');
@@ -129,12 +157,22 @@ if (!gotTheLock) {
                 fs.writeFileSync(targetPath, entry.getData());
             });
 
+            // Save new hash to prevent repeated prompts
+            if (pendingUpdateHash) {
+                config.lastUpdateHash = pendingUpdateHash;
+                saveConfig(config);
+            }
+
             try { fs.unlinkSync(zipPath); } catch (e) { }
-            launchMain();
+
+            // Relaunch the app to apply all changes smoothly
+            app.relaunch();
+            app.exit(0);
 
         } catch (e) {
             console.error(e);
             if (splashWindow) splashWindow.webContents.send('error', 'Update Failed: ' + e.message);
+            // On failure, wait a bit then jump to main
             setTimeout(launchMain, 2000);
         }
     }
@@ -185,7 +223,7 @@ if (!gotTheLock) {
         try {
             if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
         } catch (e) { }
-        return { lastTheme: 'TeleCode-ui' };
+        return { lastTheme: 'TeleCode-ui', lastUpdateHash: '' };
     }
 
     function saveConfig(config) {
